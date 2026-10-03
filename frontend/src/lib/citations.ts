@@ -14,3 +14,10 @@ export function splitAnswer(answer: string): AnswerPart[] {
   if (last < answer.length) parts.push(answer.slice(last))
   return parts
 }
+
+// While the answer streams, the end may hold a tag that is not finished yet ("[c1" or "[c1, c"). Hide it.
+const OPEN_CITATION = /\[\s*c?\d*(?:\s*,\s*c?\d*)*\s*$/
+
+export function hideOpenCitation(text: string): string {
+  return text.replace(OPEN_CITATION, "")
+}

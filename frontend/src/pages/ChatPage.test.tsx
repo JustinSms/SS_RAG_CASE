@@ -15,6 +15,20 @@ const SOURCE = {
   heading_path: "3.1 Scope",
 }
 
+// A /api/chat response whose body arrives in the given pieces (they may cut an event in two).
+function sse(...pieces: string[]) {
+  const encoder = new TextEncoder()
+  const body = new ReadableStream({
+    start(controller) {
+      for (const piece of pieces) controller.enqueue(encoder.encode(piece))
+      controller.close()
+    },
+  })
+  return { ok: true, body }
+}
+
+const event = (name: string, data: unknown) => `event: ${name}\ndata: ${JSON.stringify(data)}\n\n`
+
 function stubApi(documents: unknown[], chat: () => unknown) {
   const fetchMock = vi.fn(async (url: string) => {
     if (url === "/api/documents") return { ok: true, json: async () => documents }
@@ -38,10 +52,9 @@ async function ask(question: string) {
 }
 
 test("shows the answer with the source tag from the stored source", async () => {
-  stubApi([READY], () => ({
-    ok: true,
-    json: async () => ({ answer: "Thirty days. [c1]", sources: { c1: SOURCE } }),
-  }))
+  stubApi([READY], () =>
+    sse(event("sources", { c1: SOURCE }), event("text", "Thirty days. "), event("text", "[c1]"), event("done", {})),
+  )
   renderChat()
   await ask("Notice period?")
 
@@ -64,4 +77,40 @@ test("links to the Upload page when no document is ready", async () => {
   stubApi([], () => ({ ok: true, json: async () => ({}) }))
   renderChat()
   expect(await screen.findByRole("link", { name: "Upload a PDF" })).toHaveAttribute("href", "/upload")
+})
+
+test("a tag cut in two by the network never shows as raw text", async () => {
+  const unfinished = event("text", "Thirty days. [c")
+  // The first piece ends in the middle of the second text event.
+  const [head, tail] = [unfinished.slice(0, 20), unfinished.slice(20)]
+  stubApi([READY], () =>
+    sse(event("sources", { c1: SOURCE }), head, tail, event("text", "1]"), event("done", {})),
+  )
+  renderChat()
+  await ask("Notice period?")
+
+  expect(await screen.findByRole("link", { name: "[Contract.pdf, p. 12-13, 3.1 Scope]" })).toBeInTheDocument()
+  expect(screen.queryByText(/\[c/)).not.toBeInTheDocument()
+})
+
+test("ids that are not in the sources are not shown", async () => {
+  stubApi([READY], () =>
+    sse(event("sources", { c1: SOURCE }), event("text", "Real. [c1] Invented. [c9]"), event("done", {})),
+  )
+  renderChat()
+  await ask("Notice period?")
+
+  expect(await screen.findAllByRole("link")).toHaveLength(1)
+  expect(screen.queryByText(/c9/)).not.toBeInTheDocument()
+})
+
+test("an error event replaces the half-written answer", async () => {
+  stubApi([READY], () =>
+    sse(event("sources", { c1: SOURCE }), event("text", "Thirty "), event("error", "Model unreachable")),
+  )
+  renderChat()
+  await ask("Notice period?")
+
+  expect(await screen.findByText("Model unreachable")).toBeInTheDocument()
+  expect(screen.queryByText(/Thirty/)).not.toBeInTheDocument()
 })

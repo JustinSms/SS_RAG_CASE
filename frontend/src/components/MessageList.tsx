@@ -1,6 +1,6 @@
 import type { Source } from "@/api/client"
 import { CitationChip } from "@/components/CitationChip"
-import { splitAnswer } from "@/lib/citations"
+import { hideOpenCitation, splitAnswer } from "@/lib/citations"
 import { cn } from "@/lib/utils"
 
 export type ChatMessage = {
@@ -8,10 +8,11 @@ export type ChatMessage = {
   content: string
   sources?: Record<string, Source>
   error?: boolean
+  streaming?: boolean
 }
 
 function Answer({ message }: { message: ChatMessage }) {
-  return splitAnswer(message.content).map((part, i) =>
+  return splitAnswer(message.streaming ? hideOpenCitation(message.content) : message.content).map((part, i) =>
     typeof part === "string" ? (
       <span key={i}>{part}</span>
     ) : (
@@ -39,7 +40,7 @@ export function MessageList({ messages, waiting }: { messages: ChatMessage[]; wa
           </div>
         </li>
       ))}
-      {waiting && <li className="text-sm text-muted-foreground">Thinking...</li>}
+      {waiting && messages[messages.length - 1]?.role === "user" && <li className="text-sm text-muted-foreground">Thinking...</li>}
     </ul>
   )
 }

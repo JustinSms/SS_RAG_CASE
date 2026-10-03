@@ -70,14 +70,40 @@ export type Source = {
 
 export type HistoryMessage = { role: "user" | "assistant"; content: string }
 
-export type ChatAnswer = { answer: string; sources: Record<string, Source> }
+export type ChatHandlers = {
+  onSources: (sources: Record<string, Source>) => void
+  onText: (text: string) => void
+}
 
-export async function askQuestion(question: string, history: HistoryMessage[]): Promise<ChatAnswer> {
+// Reads the server-sent events of /api/chat: `sources`, then `text` pieces, then `done`.
+// An `error` event (or a failed request) throws.
+export async function askQuestion(
+  question: string,
+  history: HistoryMessage[],
+  { onSources, onText }: ChatHandlers,
+): Promise<void> {
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ question, history }),
   })
-  if (!response.ok) throw new Error(await errorMessage(response))
-  return response.json()
+  if (!response.ok || !response.body) throw new Error(await errorMessage(response))
+
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+  let buffer = ""
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += value
+    // An event ends with a blank line; keep the unfinished rest for the next read.
+    const blocks = buffer.split("\n\n")
+    buffer = blocks.pop() ?? ""
+    for (const block of blocks) {
+      const name = /^event: (.*)$/m.exec(block)?.[1]
+      const data = JSON.parse(/^data: (.*)$/m.exec(block)?.[1] ?? "null")
+      if (name === "sources") onSources(data)
+      else if (name === "text") onText(data)
+      else if (name === "error") throw new Error(data)
+    }
+  }
 }
