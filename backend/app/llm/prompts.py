@@ -17,3 +17,24 @@ Context:
 
 def answer_system(context: str) -> str:
     return ANSWER_SYSTEM.format(context=context)
+
+
+ENRICH_SYSTEM = """\
+You help index a document for search. You are given the document (or the section the chunks come from) and a list of chunks from it.
+
+For every chunk write:
+- "context": 1-2 sentences that say where the chunk sits in the document and what it is about, so it can be understood on its own.
+- "summary": 1-3 sentences that summarise the chunk.
+- "keywords": 3-6 short keywords or phrases.
+
+Write in the language of the document. Answer with JSON only, no other text, in this form:
+{"chunks": [{"id": 0, "context": "...", "summary": "...", "keywords": ["..."]}]}
+Return exactly one entry for each chunk id you are given."""
+
+ENRICH_DOCUMENT = "<document>\n{document}\n</document>"
+
+ENRICH_CHUNKS = """\
+Section: {heading_path}
+
+Chunks:
+{chunks}"""
