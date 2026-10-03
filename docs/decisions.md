@@ -17,7 +17,7 @@ Seeded from the planning phase, 2026-10-03.
 
 ## Other decisions
 
-(Move the choice and rejected option for each item from `design/tech-stack.md`, `design/app-structure.md` and `design/frontend-pages.md` here as the build progresses. Already agreed:)
+Agreed in the design (reasons in `design/tech-stack.md` and `design/app-structure.md`), then the choices made per milestone:
 
 - Own frontend and backend; old `rag/` code not reused, only ideas.
 - Local bge-m3 and bge-reranker-v2-m3 instead of paid services: one API key for reviewers. Rejected: Voyage.
@@ -80,6 +80,8 @@ Seeded from the planning phase, 2026-10-03.
 - Milestone 12: `GET /api/documents` now also returns `section_count` (the design's documents table needs it and no field held it); it is counted with one grouped query, not stored on the row. The two new endpoints live in `api/sections.py` (not `documents.py`) because `/api/sections/{id}/chunks` is not under `/api/documents`.
 - Milestone 12: the sections endpoint returns a flat list in document order with `level` and `parent_id`; sections are stored parents-first, so the browser draws the tree by indenting by `level` and needs no tree-building code. Each section carries its `chunk_count`. The chunks endpoint sends `has_embedding` instead of the vector.
 - Milestone 12: the Database page shows all three levels at once on one page (documents, then the sections of the chosen document, then the chunks of the chosen section), so the numbers can be compared with the Upload page without navigating back. Choosing another document clears the chunks of the old one.
+- Milestone 13: the README gives a decisions table (choice, rejected option, why) as a summary of this log, not a copy; this file stays the full record. It states plainly that retrieval and answers have not been measured, and that `SIMILARITY_CUTOFF` and `RERANK_MIN_SCORE` are provisional.
+- Milestone 13: `scripts/smoke_test.sh` now copies `env/.env.template` and fills in the key, the same steps as the README, so a broken template or README step fails the test.
 
 ## What broke
 
@@ -89,3 +91,4 @@ Seeded from the planning phase, 2026-10-03.
 - Milestone 2: the Python `lib/` rule in `.gitignore` also hid `frontend/src/lib`. Scoped it to `/backend/lib/`. `node_modules/` was not ignored yet.
 - Milestone 4, on a 6-page paper: headings and page ranges match the table of contents. The running page header ("NOVA SBE") was detected as a heading and became the first section, with the title text under it. Page headers and footers that PyMuPDF4LLM turns into headings are not filtered out yet.
 - Milestone 6: my first wait for the image build never ended, because `pgrep -f` matched the waiting command itself. Not a project bug; wait on the build process by its job instead.
+- Milestone 13: `env/.env.template` was in the design and in the README steps but had never been committed, so `cp env/.env.template env/.env` would have failed on a fresh clone. The smoke test did not notice because it wrote `env/.env` directly. Added the template and changed the smoke test to copy it.
