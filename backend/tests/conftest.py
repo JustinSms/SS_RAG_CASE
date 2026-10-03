@@ -7,7 +7,7 @@ from sqlalchemy.pool import StaticPool
 
 from app import health, main
 from app.ingestion import enricher
-from app.retrieval import embedder, reranker
+from app.retrieval import embedder, reranker, rewriter, selector
 from app.db.models import Base
 from app.db.session import get_session
 from env.config import settings
@@ -44,12 +44,14 @@ def fake_reranker(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def no_enrichment_calls(monkeypatch):
-    """No test reaches Anthropic: enrichment fails, so chunks stay unenriched. Tests that need it replace this."""
+    """No test reaches Anthropic: enrichment, rewrite and selection fail and fall back. Tests that need replies replace this."""
 
     def refuse(*args, **kwargs):
         raise RuntimeError("no network in tests")
 
     monkeypatch.setattr(enricher, "complete", refuse)
+    monkeypatch.setattr(rewriter, "complete", refuse)
+    monkeypatch.setattr(selector, "complete", refuse)
 
 
 @pytest.fixture

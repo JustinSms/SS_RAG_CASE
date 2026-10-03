@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     # Models
     ENRICH_MODEL: str = "claude-haiku-4-5"
     ANSWER_MODEL: str = "claude-sonnet-5-5"
+    REWRITE_MODEL: str = "claude-haiku-4-5"
+    SELECT_MODEL: str = "claude-sonnet-5-5"
     EMBED_MODEL: str = "BAAI/bge-m3"
     EMBED_MODEL_REVISION: str = "5617a9f61b028005a4858fdac845db406aefb181"  # pinned commit
     RERANK_MODEL: str = "BAAI/bge-reranker-v2-m3"
@@ -27,6 +29,10 @@ class Settings(BaseSettings):
     RERANK_BATCH_SIZE: int = 8  # pairs per reranker batch; small, long chunks are heavy on CPU
     RERANK_MAX_LENGTH: int = 2048  # tokens per (question, chunk) pair; a chunk is at most about 1,200
     HISTORY_TURNS: int = 4
+    REWRITE_MAX_TOKENS: int = 300  # a standalone question is short
+    SELECT_MAX_TOKENS: int = 500  # reply is a short list of chunk numbers
+    MAX_SELECTED: int = 10  # cap on extra chunks added by the selection step
+    SELECT_FALLBACK_CHARS: int = 300  # text shown to the selector for a chunk that has no summary
 
     # Ingestion
     MAX_CHUNK_SIZE: int = 1200

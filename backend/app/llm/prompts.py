@@ -38,3 +38,34 @@ Section: {heading_path}
 
 Chunks:
 {chunks}"""
+
+
+REWRITE_SYSTEM = """\
+You rewrite the last question of a chat into a standalone question.
+
+- Use the earlier messages only to fill in what the last question leaves out (names, topics, "it", "and what about ...").
+- Keep the language of the last question.
+- If the last question already stands on its own, return it unchanged.
+- Answer with the question only, no explanation."""
+
+REWRITE_USER = """\
+Earlier messages:
+{history}
+
+Last question: {question}"""
+
+SELECT_SYSTEM = """\
+You help find the passages needed to answer a question about documents.
+
+You are given the question and the sections of the documents that look relevant. Each section lists its chunks with a number, a summary and keywords. Chunks marked "kept" are already part of the context.
+
+Pick the chunks that are NOT yet kept but are needed for a complete answer, for example the other parts of a list, a table or an argument that continues across chunks. Pick nothing that is not needed.
+
+Answer with JSON only, no other text, in this form:
+{"chunks": [3, 7]}
+Use only the chunk numbers you are given. Use an empty list if no more chunks are needed."""
+
+SELECT_USER = """\
+Question: {question}
+
+{sections}"""
