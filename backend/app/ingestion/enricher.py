@@ -2,12 +2,11 @@
 
 import json
 import logging
-import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 
 from app.ingestion.tokens import count_tokens
-from app.llm.client import complete
+from app.llm.client import complete, strip_json_fence
 from app.llm.prompts import ENRICH_CHUNKS, ENRICH_DOCUMENT, ENRICH_SYSTEM
 from env.config import settings
 
@@ -89,8 +88,7 @@ def enrich_group(document_text: str, heading_path: str, texts: list[str]) -> lis
 
 def parse_enrichments(reply: str, count: int) -> list[Enrichment]:
     """The JSON must hold one valid entry for each of the `count` chunk ids."""
-    text = re.sub(r"^```(?:json)?\s*|\s*```$", "", reply.strip())
-    entries = json.loads(text)["chunks"]
+    entries = json.loads(strip_json_fence(reply))["chunks"]
     by_id = {}
     for entry in entries:
         keywords = entry["keywords"]

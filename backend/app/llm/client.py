@@ -1,3 +1,4 @@
+import re
 from typing import Literal
 
 import anthropic
@@ -34,3 +35,8 @@ def complete(model: str, system: str, messages: list[dict], max_tokens: int) -> 
         model=model, system=system, messages=messages, max_tokens=max_tokens
     )
     return "".join(block.text for block in reply.content if block.type == "text")
+
+
+def strip_json_fence(reply: str) -> str:
+    """The reply without a ```json fence around it."""
+    return re.sub(r"^```(?:json)?\s*|\s*```$", "", reply.strip())
