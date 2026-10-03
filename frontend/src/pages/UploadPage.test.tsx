@@ -83,12 +83,59 @@ test("uploads valid files in one request and refreshes the list", async () => {
   expect((post[1]!.body as FormData).getAll("files")).toHaveLength(2)
 })
 
-test("shows the api message for a duplicate (409)", async () => {
-  stubApi({ list: () => [], post: reply(409, { detail: "x.pdf is already uploaded.", document: null }) })
+const duplicate = reply(409, { detail: "x.pdf is already uploaded.", document: null })
+
+function posts(fetchMock: ReturnType<typeof stubApi>) {
+  return fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")
+}
+
+test("a duplicate (409) opens the dialog and Overwrite resends with overwrite=true", async () => {
+  let post: unknown = duplicate
+  const fetchMock = stubApi({ list: () => [] })
+  fetchMock.mockImplementation(async (_url, init) =>
+    init?.method === "POST" ? (post as never) : (reply(200, []) as never),
+  )
   render(<UploadPage />)
   await screen.findByText("No documents yet.")
   pick(pdf("x.pdf"))
-  expect(await screen.findByRole("alert")).toHaveTextContent("x.pdf is already uploaded.")
+  expect(await screen.findByText("This document is already uploaded. Overwrite it?")).toBeInTheDocument()
+
+  post = reply(202, { ids: ["1"] })
+  fireEvent.click(screen.getByRole("button", { name: "Overwrite" }))
+  await waitFor(() => expect(posts(fetchMock)).toHaveLength(2))
+  expect(posts(fetchMock)[0][0]).toBe("/api/documents?overwrite=false")
+  expect(posts(fetchMock)[1][0]).toBe("/api/documents?overwrite=true")
+  await waitFor(() =>
+    expect(screen.queryByText("This document is already uploaded. Overwrite it?")).not.toBeInTheDocument(),
+  )
+})
+
+test("Cancel in the duplicate dialog uploads nothing more", async () => {
+  const fetchMock = stubApi({ list: () => [], post: duplicate })
+  render(<UploadPage />)
+  await screen.findByText("No documents yet.")
+  pick(pdf("x.pdf"))
+  fireEvent.click(await screen.findByRole("button", { name: "Cancel" }))
+  await waitFor(() =>
+    expect(screen.queryByText("This document is already uploaded. Overwrite it?")).not.toBeInTheDocument(),
+  )
+  expect(posts(fetchMock)).toHaveLength(1)
+})
+
+test("a 413 from nginx (not JSON) shows a clear message", async () => {
+  const html = { ok: false, status: 413, json: async () => Promise.reject(new Error("html")) }
+  stubApi({ list: () => [], post: html })
+  render(<UploadPage />)
+  await screen.findByText("No documents yet.")
+  pick(pdf("x.pdf"))
+  expect(await screen.findByRole("alert")).toHaveTextContent("The file is too large (10 MB at most).")
+})
+
+test("a processing document shows its progress from chunks_done / chunk_count", async () => {
+  stubApi({ list: () => [doc({ status: "processing", chunk_count: 8, chunks_done: 2 })] })
+  render(<UploadPage />)
+  const bar = await screen.findByRole("progressbar", { name: "Processing a.pdf" })
+  expect(bar).toHaveAttribute("aria-valuenow", "25")
 })
 
 test("polls while a document is processing and stops once it is ready", async () => {

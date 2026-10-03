@@ -2,8 +2,15 @@ import { Trash2 } from "lucide-react"
 import type { Document } from "@/api/client"
 import { StatusBadge } from "@/components/StatusBadge"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 
 type Props = { documents: Document[]; onDelete: (document: Document) => void }
+
+// The chunk count is only known once the document is split; until then the bar stays empty.
+function percentDone(document: Document): number {
+  if (!document.chunk_count) return 0
+  return Math.round((document.chunks_done / document.chunk_count) * 100)
+}
 
 export function DocumentList({ documents, onDelete }: Props) {
   if (documents.length === 0) {
@@ -17,6 +24,13 @@ export function DocumentList({ documents, onDelete }: Props) {
             <p className="truncate font-medium">{document.filename}</p>
             {document.status === "failed" && document.error && (
               <p className="text-sm text-destructive">{document.error}</p>
+            )}
+            {document.status === "processing" && (
+              <Progress
+                className="mt-2"
+                aria-label={`Processing ${document.filename}`}
+                value={percentDone(document)}
+              />
             )}
           </div>
           <span className="w-20 text-sm text-muted-foreground">
