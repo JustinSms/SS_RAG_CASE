@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     EMBED_BATCH_SIZE: int = 32
     ENRICH_CONCURRENCY: int = 4
     ENRICH_BATCH_SIZE: int = 10
+    ENRICH_MAX_TOKENS: int = 4000  # reply size of one enrichment call
+    ENRICH_DOC_MAX_TOKENS: int = 150_000  # above this the section is sent, not the document (Haiku window is 200K)
+    ENRICH_RETRIES: int = 1  # extra tries after invalid JSON or a failed call
 
     # Anthropic calls
     LLM_TIMEOUT_S: float = 60

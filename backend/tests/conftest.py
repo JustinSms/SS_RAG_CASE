@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app import health, main
+from app.ingestion import enricher
 from app.retrieval import embedder
 from app.db.models import Base
 from app.db.session import get_session
@@ -25,6 +26,16 @@ def fake_embedder(monkeypatch):
     fake = FakeEmbedder()
     monkeypatch.setattr(embedder, "_embedder", fake)
     return fake
+
+
+@pytest.fixture(autouse=True)
+def no_enrichment_calls(monkeypatch):
+    """No test reaches Anthropic: enrichment fails, so chunks stay unenriched. Tests that need it replace this."""
+
+    def refuse(*args, **kwargs):
+        raise RuntimeError("no network in tests")
+
+    monkeypatch.setattr(enricher, "complete", refuse)
 
 
 @pytest.fixture
