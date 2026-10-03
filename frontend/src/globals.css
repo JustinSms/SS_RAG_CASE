@@ -1,0 +1,71 @@
+/* Document Chat theme for Tailwind v4 + shadcn/ui, derived from the Siteco case brief
+   (Inter, grey scale, red accent #B61918, near-square corners, dark header).
+   Goes into frontend/src/globals.css. shadcn components read the CSS variables below. */
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "Inter Variable", "Inter", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --font-mono: "SFMono-Regular", ui-monospace, Consolas, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* extra brand tokens, usable as bg-header, text-success, ... */
+  --color-header: var(--header);
+  --color-header-foreground: var(--header-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+}
+
+:root {
+  --radius: 2px;                          /* the brief uses near-square corners */
+  --background: #FFFFFF;
+  --foreground: #26262A;                  /* body text */
+  --card: #F5F5F5;                        /* "surface" in the brief */
+  --card-foreground: #1A1A1C;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A1C;
+  --primary: #B61918;                     /* brief accent red */
+  --primary-foreground: #FFFFFF;
+  --secondary: #ECEDED;
+  --secondary-foreground: #1A1A1C;
+  --muted: #F5F5F5;
+  --muted-foreground: #6E7276;
+  --accent: #F7E3E3;                      /* soft red, used for hover and drag-over */
+  --accent-foreground: #8E1312;
+  --destructive: #B61918;
+  --border: #D7D8D9;
+  --input: #AAABAD;
+  --ring: #B61918;
+
+  --header: #1D1F21;
+  --header-foreground: #FFFFFF;
+  --success: #2E8B57;
+  --warning: #D2B940;
+}
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  body { @apply bg-background text-foreground font-sans text-[15px] leading-[1.46]; }
+  h1, h2, h3 { @apply font-bold text-card-foreground leading-tight; }
+}

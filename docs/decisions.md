@@ -34,9 +34,16 @@ Seeded from the planning phase, 2026-10-03.
 - Memory check reads `MemTotal` from `/proc/meminfo` (the Docker VM), not available memory, which fluctuates. Skipped when the file does not exist.
 - `RERANK_MIN_SCORE` defaults to `None` until it is tuned in milestone 8. `ANTHROPIC_API_KEY` defaults to empty so a missing key shows up in health instead of crashing at startup.
 - Backend image: build context is the repo root (so `env/` can be copied in), `uv sync --frozen` from `uv.lock`, pinned `python:3.11.15-slim` and `uv:0.10.12`. `env/.env` is kept out of the image by `.dockerignore`; compose passes it in with `env_file` (optional, so a missing file shows the missing-key problem).
+- Frontend toolchain: exact-pinned versions in `package.json` plus `package-lock.json`; TypeScript 6.0.3, not 7. `typescript-eslint` 8.71 only supports TypeScript below 6.1, and lint matters more than the newest compiler. Move to 7 when `typescript-eslint` supports it.
+- shadcn components are added with the CLI and then edited: the CLI v4 wrote `import { cn } from "cn"` and added an unrelated npm package `cn` plus the `radix-ui` umbrella. Replaced by `@/lib/utils` and `@radix-ui/react-slot`, both pinned.
+- Frontend tests use vitest + Testing Library with `fetch` stubbed (no network, no api needed). `npm test`.
+- The browser polls `/api/health` every 5 s (`HEALTH_POLL_MS`), so the banner clears after the user fixes the key and restarts the api, without a reload. An unreachable api shows the same red banner.
+- `web` serves on 8080 (nginx container port 80); the `api` port 8000 is no longer published. For `npm run dev`, publish it again or run uvicorn locally (vite proxies `/api` to `localhost:8000`).
+- nginx 10m limit duplicates `MAX_UPLOAD_MB` (nginx cannot read pydantic settings); noted in `nginx.conf`. Base images pinned: `node:24.14.1-alpine`, `nginx:1.30.0-alpine`.
 
 ## What broke
 
 - Milestone 1: the stock Python `.gitignore` had `env/` and `ENV/` (virtualenv folders). Git on macOS matches case-insensitively, so both hid our `env/` config folder. Replaced with `env/.env`.
 - Milestone 1: the memory warning fired on Docker set to 8 GB because the VM reports about 7.7 GB. `MIN_MEMORY_GB` default is 7.5.
 - Milestone 1: uvicorn in the container could not import `env.config`; pytest's `pythonpath` setting does not apply to uvicorn. Fixed with `PYTHONPATH` in the Dockerfile.
+- Milestone 2: the Python `lib/` rule in `.gitignore` also hid `frontend/src/lib`. Scoped it to `/backend/lib/`. `node_modules/` was not ignored yet.
