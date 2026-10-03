@@ -23,8 +23,6 @@ services:
         required: false
     environment:
       DATABASE_URL: postgresql+psycopg://docchat:docchat@db:5432/docchat
-    ports:
-      - "8000:8000"
     volumes:
       - uploads:/data/uploads
     depends_on:
@@ -36,6 +34,15 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+    restart: unless-stopped
+
+  web:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

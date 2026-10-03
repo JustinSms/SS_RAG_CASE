@@ -222,3 +222,4 @@ __marimo__/
 
 # Frontend
 node_modules/
+*.tsbuildinfo
