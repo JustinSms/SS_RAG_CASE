@@ -36,6 +36,29 @@ services:
       start_period: 30s
     restart: unless-stopped
 
+  # Retrieval evaluation, started on demand only:
+  #   docker compose --profile eval run --rm eval python run.py
+  # Same image as api, with eval/ mounted. Its own database (docchat_eval) and uploads volume.
+  eval:
+    profiles: ["eval"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    working_dir: /app/eval
+    command: ["python", "ingest.py"]
+    env_file:
+      - path: env/.env
+        required: false
+    environment:
+      DATABASE_URL: postgresql+psycopg://docchat:docchat@db:5432/docchat_eval
+      UPLOADS_DIR: /data/eval-uploads
+    volumes:
+      - ./eval:/app/eval
+      - eval_uploads:/data/eval-uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
   web:
     build: ./frontend
     ports:
@@ -48,3 +71,4 @@ services:
 volumes:
   pgdata:
   uploads:
+  eval_uploads:
