@@ -1,0 +1,20 @@
+[project]
+name = "document-chat-api"
+version = "0.1.0"
+description = "Document Chat backend"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic-settings",
+    "sqlalchemy",
+    "psycopg[binary]",
+    "anthropic",
+]
+
+[dependency-groups]
+dev = ["pytest", "httpx"]
+
+[tool.pytest.ini_options]
+pythonpath = [".", ".."]
+testpaths = ["tests"]

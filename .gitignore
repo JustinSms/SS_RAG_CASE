@@ -153,9 +153,8 @@ activemq-data/
 .env
 .envrc
 .venv
-env/
+env/.env
 venv/
-ENV/
 env.bak/
 venv.bak/
 
@@ -218,3 +217,5 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+.DS_Store
