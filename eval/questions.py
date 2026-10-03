@@ -88,14 +88,15 @@ def missing_headings(session: Session, specs: list[QuestionSpec]) -> list[str]:
 
 
 def sync_questions(session: Session, specs: list[QuestionSpec]) -> None:
-    """Replace the questions in the database with the ones from the files. Results of earlier runs go with them."""
+    """Make the database match the files. Results of earlier runs are kept (rerun them after editing a question)."""
     problems = missing_headings(session, specs)
     if problems:
         raise ValueError("Gold headings not found:\n" + "\n".join(problems))
-    session.execute(delete(Question))
+    session.execute(delete(Question).where(Question.id.not_in([s.id for s in specs])))
+    session.execute(delete(Gold))
     for s in specs:
-        session.add(Question(id=s.id, document=s.document, question=s.question, type=s.type,
-                             answerable=s.answerable, history=s.history))
+        session.merge(Question(id=s.id, document=s.document, question=s.question, type=s.type,
+                               answerable=s.answerable, history=s.history))
     session.flush()  # questions first: gold rows point at them
     for s in specs:
         for document, heading in s.gold:

@@ -54,6 +54,7 @@ class Result(EvalBase):
     chunks: Mapped[list] = mapped_column(JSON)  # id, document, heading_path, chars, cosine, rerank
     refused: Mapped[bool]
     latency_s: Mapped[float]
+    fallback: Mapped[bool] = mapped_column(default=False)  # an optional step failed: not the real pipeline
 
 
 def ensure_database() -> None:
