@@ -244,6 +244,17 @@ def test_the_trace_lists_the_chunk_ids_after_each_stage(monkeypatch):
     assert not trace.not_found
 
 
+def test_the_trace_keeps_the_score_of_every_candidate(monkeypatch):
+    hits = [hit(n, f"Chunk {n}.") for n in range(1, 4)]
+    monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: hits)
+    use_reranker(monkeypatch, ScoresByText({"Chunk 1.": 0.2, "Chunk 2.": 0.8, "Chunk 3.": 0.5}))
+
+    _, trace = pipeline.select_context(None, "question", [])
+
+    assert trace.cosine_scores == [h.similarity for h in hits]
+    assert trace.rerank_scores == [0.8, 0.5, 0.2]  # same order as trace.reranked
+
+
 def test_a_failing_reranker_keeps_the_cosine_order_and_still_answers(client, monkeypatch, llm):
     hits = [hit(n, f"Chunk {n}.") for n in range(1, settings.TOP_N + 3)]
     monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: hits)
