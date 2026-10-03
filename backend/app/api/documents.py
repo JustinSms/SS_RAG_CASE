@@ -18,6 +18,9 @@ router = APIRouter(prefix="/api/documents")
 
 PDF_HEADER = b"%PDF"
 BYTES_PER_MB = 1024 * 1024
+# An overwrite is ingested under "<sha256>:pending:<id>" because the old version still holds the
+# real hash (it is unique). The pipeline swaps the real hash in when the new version is ready.
+PENDING_MARKER = ":pending:"
 
 
 class DocumentOut(BaseModel):
@@ -53,9 +56,14 @@ def check_pdf(name: str, content: bytes) -> None:
 
 
 @router.post("", status_code=202)
-async def upload(files: list[UploadFile], request: Request, session: Session = Depends(get_session)):
+async def upload(
+    files: list[UploadFile],
+    request: Request,
+    overwrite: bool = False,
+    session: Session = Depends(get_session),
+):
     # Check every file before storing any, so a bad one rejects the whole request.
-    checked: list[tuple[str, bytes, str]] = []
+    checked: list[tuple[str, bytes, str, bool]] = []
     for upload_file in files:
         name = Path(upload_file.filename or "document.pdf").name
         # Read one byte past the limit: enough to detect "too large" without loading more.
@@ -63,7 +71,8 @@ async def upload(files: list[UploadFile], request: Request, session: Session = D
         check_pdf(name, content)
         sha256 = hashlib.sha256(content).hexdigest()
         existing = session.scalar(select(Document).where(Document.sha256 == sha256))
-        if existing is not None or any(sha256 == c[2] for c in checked):
+        repeated_in_request = any(sha256 == c[2] for c in checked)
+        if repeated_in_request or (existing is not None and not overwrite):
             return JSONResponse(
                 status_code=409,
                 content={
@@ -73,13 +82,15 @@ async def upload(files: list[UploadFile], request: Request, session: Session = D
                     else None,
                 },
             )
-        checked.append((name, content, sha256))
+        checked.append((name, content, sha256, existing is not None))
 
     documents = []
-    for name, content, sha256 in checked:
-        document = Document(filename=name, sha256=sha256, size_bytes=len(content))
+    for name, content, sha256, replaces_existing in checked:
+        document_id = uuid.uuid4()
+        stored_hash = f"{sha256}{PENDING_MARKER}{document_id}" if replaces_existing else sha256
+        document = Document(id=document_id, filename=name, sha256=stored_hash, size_bytes=len(content))
         session.add(document)
-        session.flush()  # assigns the id used as the file name
+        session.flush()
         path = file_path(document.id)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(content)
