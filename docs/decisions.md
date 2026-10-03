@@ -29,7 +29,14 @@ Seeded from the planning phase, 2026-10-03.
 - `SIMILARITY_CUTOFF` default 0.45 (lowered from 0.70): bge-m3 cosine scores for relevant passages often sit around 0.5-0.7, so the cutoff only removes clear noise and the reranker does the real filtering. Tuned in the evaluation.
 - Dense search only in v1. Next step: keyword search (BM25 via Postgres full-text search) as a hybrid, compared in the evaluation. Rejected for now: one more retrieval path to tune before the happy path works.
 - No OCR in v1; scanned PDFs are rejected as "no text found". Next step: OCR for pages without a text layer (for example Tesseract via PyMuPDF).
+- `/api/health` always returns 200 while the app is up; the body carries `healthy` and a `problems` list (`level` error or warning). A non-200 would make the `api` container unhealthy, and then `web` (which waits for it) could never start and show the setup banner. The compose healthcheck therefore only proves the app answers.
+- API key check: one `models.list(limit=1)` call at startup through `llm/client.py`, result cached until restart. Rejected: a tiny message call (costs tokens, needs a prompt). Auth errors mean "invalid", other API errors mean "unreachable".
+- Memory check reads `MemTotal` from `/proc/meminfo` (the Docker VM), not available memory, which fluctuates. Skipped when the file does not exist.
+- `RERANK_MIN_SCORE` defaults to `None` until it is tuned in milestone 8. `ANTHROPIC_API_KEY` defaults to empty so a missing key shows up in health instead of crashing at startup.
+- Backend image: build context is the repo root (so `env/` can be copied in), `uv sync --frozen` from `uv.lock`, pinned `python:3.11.15-slim` and `uv:0.10.12`. `env/.env` is kept out of the image by `.dockerignore`; compose passes it in with `env_file` (optional, so a missing file shows the missing-key problem).
 
 ## What broke
 
-(Fill in during the build.)
+- Milestone 1: the stock Python `.gitignore` had `env/` and `ENV/` (virtualenv folders). Git on macOS matches case-insensitively, so both hid our `env/` config folder. Replaced with `env/.env`.
+- Milestone 1: the memory warning fired on Docker set to 8 GB because the VM reports about 7.7 GB. `MIN_MEMORY_GB` default is 7.5.
+- Milestone 1: uvicorn in the container could not import `env.config`; pytest's `pythonpath` setting does not apply to uvicorn. Fixed with `PYTHONPATH` in the Dockerfile.

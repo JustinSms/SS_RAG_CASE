@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     UPLOADS_DIR: str = "/data/uploads"
 
     # Health checks
-    MIN_MEMORY_GB: float = 8
+    MIN_MEMORY_GB: float = 7.5  # "8 GB" Docker shows as about 7.7 inside the VM
     DB_CHECK_TIMEOUT_S: int = 3
 
 
