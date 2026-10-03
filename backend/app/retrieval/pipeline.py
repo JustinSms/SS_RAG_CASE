@@ -2,11 +2,12 @@
 
 import logging
 import uuid
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 
 from sqlalchemy.orm import Session
 
-from app.llm.client import complete
+from app.llm.client import complete, stream
 from app.llm.prompts import answer_system
 from app.retrieval.citations import Source, clean_citations, strip_citations
 from app.retrieval.embedder import get_embedder
@@ -93,11 +94,8 @@ def select_context(session: Session, question: str, history: list[dict]) -> tupl
     return combine(top, selected), trace  # B7
 
 
-def answer_question(session: Session, question: str, history: list[dict]) -> ChatResult:
-    context, trace = select_context(session, question, history)
-    if trace.not_found:  # do not call the answer model
-        return ChatResult(NOT_FOUND, {}, trace)
-
+def build_prompt(context: list[Hit], question: str, history: list[dict]) -> tuple[dict[str, Source], str, list[dict]]:
+    """B8: the source labels, the system prompt with the labelled chunks, and the messages."""
     sources = {}
     blocks = []
     for number, hit in enumerate(context, start=1):
@@ -109,10 +107,28 @@ def answer_question(session: Session, question: str, history: list[dict]) -> Cha
         blocks.append(f"[{label}] {hit.filename}, {pages}, {hit.heading_path}\n{hit.text}")
 
     messages = history_messages(history) + [{"role": "user", "content": question}]
-    answer = complete(  # B8
-        settings.ANSWER_MODEL,
-        answer_system("\n\n".join(blocks)),
-        messages,
-        settings.ANSWER_MAX_TOKENS,
-    )
+    return sources, answer_system("\n\n".join(blocks)), messages
+
+
+def answer_question(session: Session, question: str, history: list[dict]) -> ChatResult:
+    context, trace = select_context(session, question, history)
+    if trace.not_found:  # do not call the answer model
+        return ChatResult(NOT_FOUND, {}, trace)
+
+    sources, system, messages = build_prompt(context, question, history)
+    answer = complete(settings.ANSWER_MODEL, system, messages, settings.ANSWER_MAX_TOKENS)  # B8
     return ChatResult(clean_citations(answer, sources), sources, trace)
+
+
+def stream_answer(session: Session, question: str, history: list[dict]) -> tuple[dict[str, Source], Iterator[str]]:
+    """B0-B8 with a streamed answer: the retrieval runs now, the answer text arrives from the iterator.
+
+    Ids that are not in the sources are not removed here (the text is not complete yet); the browser
+    only shows tags for known ids.
+    """
+    context, trace = select_context(session, question, history)
+    if trace.not_found:
+        return {}, iter([NOT_FOUND])
+
+    sources, system, messages = build_prompt(context, question, history)
+    return sources, stream(settings.ANSWER_MODEL, system, messages, settings.ANSWER_MAX_TOKENS)
