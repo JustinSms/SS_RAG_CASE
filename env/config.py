@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     ENRICH_MODEL: str = "claude-haiku-4-5"
     ANSWER_MODEL: str = "claude-sonnet-5-5"
     EMBED_MODEL: str = "BAAI/bge-m3"
+    EMBED_MODEL_REVISION: str = "5617a9f61b028005a4858fdac845db406aefb181"  # pinned commit
     RERANK_MODEL: str = "BAAI/bge-reranker-v2-m3"
 
     # Retrieval
@@ -36,6 +37,7 @@ class Settings(BaseSettings):
     # Anthropic calls
     LLM_TIMEOUT_S: float = 60
     LLM_MAX_RETRIES: int = 3
+    ANSWER_MAX_TOKENS: int = 1500
 
     # Infrastructure
     DATABASE_URL: str = "postgresql+psycopg://docchat:docchat@localhost:5432/docchat"

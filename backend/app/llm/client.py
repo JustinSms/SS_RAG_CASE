@@ -26,3 +26,11 @@ def check_api_key() -> KeyStatus:
     except anthropic.APIError:
         return "unreachable"
     return "ok"
+
+
+def complete(model: str, system: str, messages: list[dict], max_tokens: int) -> str:
+    """One Claude call; returns the text of the reply. Timeout and retries come from get_client()."""
+    reply = get_client().messages.create(
+        model=model, system=system, messages=messages, max_tokens=max_tokens
+    )
+    return "".join(block.text for block in reply.content if block.type == "text")
