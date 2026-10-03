@@ -45,6 +45,11 @@ Seeded from the planning phase, 2026-10-03.
 - Queue: one daemon worker thread over `queue.Queue`. A crash in the pipeline marks that document `failed` with the error and the worker carries on with the next one.
 - Unit tests use in-memory SQLite, not Postgres: `Vector` and `ARRAY` columns have JSON variants for SQLite (in `db/models.py`) and the HNSW index is Postgres-only. Cascade, the pgvector extension and the index were checked by hand against the real `db` container. Rejected: tests that need the `db` container (pytest would then not run on a laptop without Docker).
 - `pgvector`, `python-multipart` and `pymupdf` added to the backend (pinned by `uv.lock`); PyMuPDF is reused for parsing in milestone 4.
+- Chunk sizes use a token estimate (`ceil(characters / CHARS_PER_TOKEN)`, default 4), not the bge-m3 tokenizer. It needs no model download, so tests and parsing run offline. English text is close to 4 characters per token, German and tables use more tokens, so real chunks can be somewhat above the estimate; `MAX_CHUNK_SIZE` (about two pages) has room for that. Rejected: loading the tokenizer in ingestion (needs the model, slows the tests).
+- `pymupdf4llm` pulls in `pymupdf-layout` (with onnxruntime, numpy) for its heading detection. Accepted: it is pinned by `uv.lock` and gives better headings than the plain version.
+- Sections: heading level = number of `#`. A skipped level (`#` then `###`) attaches to the nearest shallower heading. Headings without text stay as empty sections (no chunks), so the tree matches the table of contents. Text before the first heading goes into a root section called "Start of document". A PDF with no headings at all becomes "Part 1", "Part 2", ... of about `MAX_CHUNK_SIZE` tokens.
+- Chunker: the overlap is the last `CHUNK_OVERLAP_TOKENS` of the previous chunk, cut at a word boundary, so a chunk holds at most `MAX_CHUNK_SIZE - CHUNK_OVERLAP_TOKENS` tokens of new text. A paragraph longer than that is cut at word boundaries. A page break inside a paragraph (PyMuPDF4LLM works per page) splits it into two paragraphs, one per page.
+- Milestone 4: documents become `ready` after chunking, although nothing is embedded yet. They cannot be searched until milestone 6.
 
 ## What broke
 
@@ -52,3 +57,4 @@ Seeded from the planning phase, 2026-10-03.
 - Milestone 1: the memory warning fired on Docker set to 8 GB because the VM reports about 7.7 GB. `MIN_MEMORY_GB` default is 7.5.
 - Milestone 1: uvicorn in the container could not import `env.config`; pytest's `pythonpath` setting does not apply to uvicorn. Fixed with `PYTHONPATH` in the Dockerfile.
 - Milestone 2: the Python `lib/` rule in `.gitignore` also hid `frontend/src/lib`. Scoped it to `/backend/lib/`. `node_modules/` was not ignored yet.
+- Milestone 4, on a 6-page paper: headings and page ranges match the table of contents. The running page header ("NOVA SBE") was detected as a heading and became the first section, with the title text under it. Page headers and footers that PyMuPDF4LLM turns into headings are not filtered out yet.
