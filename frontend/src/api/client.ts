@@ -29,6 +29,12 @@ export type Document = {
   created_at: string
 }
 
+// nginx answers an oversized upload with an HTML page, so the status code has to be enough.
+const STATUS_MESSAGES: Record<number, string> = {
+  413: "The file is too large (10 MB at most).",
+  415: "The file is not a readable PDF.",
+}
+
 // The api reports errors as {detail: "..."}; fall back to the status code otherwise.
 async function errorMessage(response: Response): Promise<string> {
   try {
@@ -37,8 +43,11 @@ async function errorMessage(response: Response): Promise<string> {
   } catch {
     // body was not JSON
   }
-  return `Request failed (${response.status})`
+  return STATUS_MESSAGES[response.status] ?? `Request failed (${response.status})`
 }
+
+// The upload hit a file that is already stored; the user decides whether to overwrite it.
+export class DuplicateError extends Error {}
 
 export async function listDocuments(): Promise<Document[]> {
   const response = await fetch("/api/documents")
@@ -46,11 +55,11 @@ export async function listDocuments(): Promise<Document[]> {
   return response.json()
 }
 
-export async function uploadDocuments(files: File[]): Promise<void> {
+export async function uploadDocuments(files: File[], overwrite = false): Promise<void> {
   const body = new FormData()
   for (const file of files) body.append("files", file)
-  const response = await fetch("/api/documents", { method: "POST", body })
-  // 409 (already uploaded) arrives with its own message; the overwrite dialog comes later.
+  const response = await fetch(`/api/documents?overwrite=${overwrite}`, { method: "POST", body })
+  if (response.status === 409) throw new DuplicateError(await errorMessage(response))
   if (!response.ok) throw new Error(await errorMessage(response))
 }
 

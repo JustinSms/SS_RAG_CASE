@@ -1,7 +1,9 @@
 import uuid
 from pathlib import Path
 
+from app.api.documents import file_path
 from app.db.models import Chunk, Document, Section
+from app.ingestion import pipeline
 from env.config import settings
 from tests.conftest import make_pdf
 
@@ -110,3 +112,72 @@ def test_delete_cascades_to_sections_and_chunks(client, session_factory):
         assert session.query(Section).count() == 0
         assert session.query(Chunk).count() == 0
 
+
+
+def chunk_ids(session_factory, document_id):
+    with session_factory() as session:
+        return {c.id for c in session.query(Chunk).filter_by(document_id=uuid.UUID(document_id))}
+
+
+def test_overwrite_replaces_the_old_document_and_its_chunks(client, session_factory):
+    pdf = make_pdf("same text")
+    old_id = upload(client, pdf).json()["ids"][0]
+    client.app.state.queue.join()
+    old_chunks = chunk_ids(session_factory, old_id)
+    assert old_chunks
+    assert file_path(uuid.UUID(old_id)).exists()
+
+    response = client.post(
+        "/api/documents?overwrite=true",
+        files=[("files", ("new.pdf", pdf, "application/pdf"))],
+    )
+    assert response.status_code == 202
+    new_id = response.json()["ids"][0]
+    client.app.state.queue.join()
+
+    documents = client.get("/api/documents").json()
+    assert [d["id"] for d in documents] == [new_id]
+    assert documents[0]["status"] == "ready"
+    assert documents[0]["filename"] == "new.pdf"
+    new_chunks = chunk_ids(session_factory, new_id)
+    assert new_chunks and new_chunks.isdisjoint(old_chunks)
+    with session_factory() as session:
+        assert session.query(Chunk).count() == len(new_chunks)
+    assert not file_path(uuid.UUID(old_id)).exists()
+    # The new version now owns the hash: uploading the file again is a duplicate again.
+    assert upload(client, pdf).status_code == 409
+
+
+def test_overwrite_without_an_existing_document_is_a_normal_upload(client):
+    response = client.post(
+        "/api/documents?overwrite=true",
+        files=[("files", ("a.pdf", make_pdf(), "application/pdf"))],
+    )
+    assert response.status_code == 202
+    client.app.state.queue.join()
+    assert len(client.get("/api/documents").json()) == 1
+
+
+def test_a_failed_overwrite_keeps_the_old_document(client, session_factory, monkeypatch):
+    pdf = make_pdf("same text")
+    old_id = upload(client, pdf).json()["ids"][0]
+    client.app.state.queue.join()
+    old_chunks = chunk_ids(session_factory, old_id)
+
+    def boom(path):
+        raise RuntimeError("parser crashed")
+
+    monkeypatch.setattr(pipeline, "parse_pdf", boom)
+    new_id = client.post(
+        "/api/documents?overwrite=true",
+        files=[("files", ("new.pdf", pdf, "application/pdf"))],
+    ).json()["ids"][0]
+    client.app.state.queue.join()
+
+    by_id = {d["id"]: d for d in client.get("/api/documents").json()}
+    assert by_id[old_id]["status"] == "ready"
+    assert by_id[new_id]["status"] == "failed"
+    assert chunk_ids(session_factory, old_id) == old_chunks
+    assert file_path(uuid.UUID(old_id)).exists()
+    # The failed attempt did not take the hash: the old document is still the duplicate.
+    assert upload(client, pdf).status_code == 409

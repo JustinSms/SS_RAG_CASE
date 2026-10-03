@@ -1,12 +1,31 @@
 import uuid
 
-from app.api.documents import file_path
+from sqlalchemy import select
+
+from app.api.documents import PENDING_MARKER, file_path
 from app.db.models import Chunk, Document, Section
 from app.ingestion.chunker import chunk_section
 from app.ingestion.enricher import SectionJob, enrich_sections
 from app.ingestion.parser import parse_pdf
 from app.ingestion.sections import build_sections
 from app.retrieval.embedder import get_embedder
+
+
+def replace_old_version(session, document) -> uuid.UUID | None:
+    """Overwrite: drop the old version and take over its hash. Returns the old id, if any.
+
+    Runs in the same transaction as marking the new document ready.
+    """
+    if PENDING_MARKER not in document.sha256:
+        return None
+    real_hash = document.sha256.split(PENDING_MARKER)[0]
+    old = session.scalar(select(Document).where(Document.sha256 == real_hash))
+    old_id = old.id if old is not None else None
+    if old is not None:
+        session.delete(old)  # sections and chunks go with it (ON DELETE CASCADE)
+        session.flush()  # the delete must reach the database before the hash is reused
+    document.sha256 = real_hash
+    return old_id
 
 
 def process_document(session_factory, document_id) -> None:
@@ -81,4 +100,7 @@ def process_document(session_factory, document_id) -> None:
 
         document.page_count = len(pages)
         document.status = "ready"
+        old_id = replace_old_version(session, document)
         session.commit()
+        if old_id is not None:
+            file_path(old_id).unlink(missing_ok=True)
