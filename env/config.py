@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     # Ingestion
     MAX_CHUNK_SIZE: int = 1200
     CHUNK_OVERLAP_TOKENS: int = 100
+    CHARS_PER_TOKEN: float = 4  # token estimate for chunk sizes; no tokenizer needed
     MAX_UPLOAD_MB: int = 10
     EMBED_BATCH_SIZE: int = 32
     ENRICH_CONCURRENCY: int = 4
