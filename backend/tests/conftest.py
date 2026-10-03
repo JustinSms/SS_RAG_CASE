@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app import health, main
-from app.ingestion import pipeline
+from app.retrieval import embedder
 from app.db.models import Base
 from app.db.session import get_session
 from env.config import settings
@@ -23,9 +23,7 @@ class FakeEmbedder:
 def fake_embedder(monkeypatch):
     """No test loads the real model."""
     fake = FakeEmbedder()
-    monkeypatch.setattr(main, "get_embedder", lambda: fake)
-    monkeypatch.setattr(pipeline, "get_embedder", lambda: fake)
-    monkeypatch.setattr(health, "embedder_loaded", lambda: True)
+    monkeypatch.setattr(embedder, "_embedder", fake)
     return fake
 
 
