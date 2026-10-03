@@ -169,7 +169,7 @@ def test_the_trace_lists_the_chunk_ids_after_each_stage(monkeypatch):
     scores["Chunk 7."] = 0.95
     use_reranker(monkeypatch, ScoresByText(scores))
 
-    _, trace = pipeline.select_context(None, "question")
+    _, trace = pipeline.select_context(None, "question", [])
 
     assert trace.candidates == [h.chunk_id for h in hits]
     assert trace.reranked[0] == hits[-1].chunk_id
@@ -189,7 +189,7 @@ def test_a_failing_reranker_keeps_the_cosine_order_and_still_answers(client, mon
     use_reranker(monkeypatch, Broken())
 
     body = ask(client).json()
-    _, trace = pipeline.select_context(None, "question")
+    _, trace = pipeline.select_context(None, "question", [])
 
     assert body["answer"] == "Thirty days. [c1]"
     assert {s["page_start"] for s in body["sources"].values()} == set(range(1, settings.TOP_N + 1))
@@ -224,3 +224,106 @@ def test_a_score_at_the_minimum_is_still_answered(client, monkeypatch, llm):
 
     assert ask(client).json()["answer"] == "Thirty days. [c1]"
     assert len(llm.calls) == 1
+
+
+def test_a_follow_up_is_searched_as_the_rewritten_question_but_answered_as_asked(client, monkeypatch, llm):
+    searched = []
+    monkeypatch.setattr(pipeline, "rewrite_question", lambda q, h: "How long is the notice for the lease?")
+    monkeypatch.setattr(pipeline.get_embedder(), "embed", lambda texts: searched.extend(texts) or [[1.0, 0.0, 0.0, 0.0]])
+    monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: [hit(1, "Text.")])
+    history = [{"role": "user", "content": "Notice?"}, {"role": "assistant", "content": "Thirty days. [c1]"}]
+
+    ask(client, question="and for the lease?", history=history)
+
+    assert searched == ["How long is the notice for the lease?"]
+    assert llm.calls[0]["messages"][-1] == {"role": "user", "content": "and for the lease?"}
+
+
+def test_the_rewriter_gets_the_trimmed_history_without_old_ids(monkeypatch):
+    monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: [])
+    seen = []
+    monkeypatch.setattr(pipeline, "rewrite_question", lambda q, h: seen.append(h) or q)
+    history = [{"role": "user", "content": "Notice?"}, {"role": "assistant", "content": "Thirty days. [c1]"}]
+
+    _, trace = pipeline.select_context(None, "and for the lease?", history)
+
+    assert seen == [[{"role": "user", "content": "Notice?"}, {"role": "assistant", "content": "Thirty days."}]]
+    assert trace.search_question == "and for the lease?"
+
+
+def test_a_failing_rewrite_still_answers_with_the_raw_question(client, monkeypatch, llm):
+    # conftest makes the rewriter's call fail, as an API outage would
+    monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: [hit(1, "Text.")])
+    history = [{"role": "user", "content": "Notice?"}, {"role": "assistant", "content": "Thirty days."}]
+
+    body = ask(client, question="and for the lease?", history=history).json()
+    _, trace = pipeline.select_context(None, "and for the lease?", history)
+
+    assert body["answer"] == "Thirty days. [c1]"
+    assert trace.search_question == "and for the lease?"
+
+
+def test_combine_puts_each_chunk_once_in_document_order():
+    a, b, c, d = (hit(n, f"Chunk {n}.") for n in (1, 2, 3, 4))
+
+    assert pipeline.combine([d, b], [c, b, a]) == [a, b, c, d]
+
+
+def test_selected_chunks_join_the_top_chunks_in_document_order_with_labels(client, monkeypatch, llm):
+    top = [hit(7, "Seven."), hit(3, "Three.")]
+    extra = [hit(5, "Five."), hit(9, "Nine.")]
+    monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: top)
+    monkeypatch.setattr(pipeline, "select_extra_chunks", lambda session, question, kept: extra)
+
+    sources = ask(client).json()["sources"]
+
+    assert [sources[f"c{n}"]["page_start"] for n in range(1, 5)] == [3, 5, 7, 9]
+    system = llm.calls[0]["system"]
+    assert "[c2] Contract.pdf, p. 5-6, 5 Terms\nFive." in system
+
+
+def test_the_trace_lists_the_selected_chunks(monkeypatch):
+    top = [hit(1, "One.")]
+    extra = [hit(2, "Two.")]
+    monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: top)
+    monkeypatch.setattr(pipeline, "select_extra_chunks", lambda session, question, kept: extra)
+
+    context, trace = pipeline.select_context(None, "question", [])
+
+    assert [h.text for h in context] == ["One.", "Two."]
+    assert trace.top_n == [top[0].chunk_id]
+    assert trace.selected == [extra[0].chunk_id]
+
+
+def test_the_selector_gets_the_search_question_and_only_the_top_chunks(monkeypatch):
+    hits = [hit(n, f"Chunk {n}.") for n in range(1, settings.TOP_N + 3)]
+    monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: hits)
+    monkeypatch.setattr(pipeline, "rewrite_question", lambda q, h: "standalone")
+    seen = []
+    monkeypatch.setattr(pipeline, "select_extra_chunks", lambda session, question, kept: seen.append((question, kept)) or [])
+
+    pipeline.select_context(None, "follow-up", [{"role": "user", "content": "x"}])
+
+    assert seen == [("standalone", hits[: settings.TOP_N])]
+
+
+def test_a_not_found_question_skips_the_selection(client, monkeypatch, llm):
+    monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: [hit(1, "Unrelated.")])
+    use_reranker(monkeypatch, ScoresByText({"Unrelated.": 0.0}))
+    called = []
+    monkeypatch.setattr(pipeline, "select_extra_chunks", lambda *args: called.append(1) or [])
+
+    assert ask(client).json()["answer"] == NOT_FOUND
+    assert called == []
+
+
+def test_a_failing_selection_still_answers_from_the_top_chunks(monkeypatch, llm):
+    # the real selector: no session to load the sections from, so it fails and adds nothing
+    hits = [hit(n, f"Chunk {n}.") for n in range(1, settings.TOP_N + 3)]
+    monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: hits)
+
+    result = pipeline.answer_question(None, "How long is the notice?", [])
+
+    assert result.answer == "Thirty days. [c1]"
+    assert len(result.sources) == settings.TOP_N
+    assert result.trace.selected == []

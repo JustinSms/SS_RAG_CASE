@@ -16,14 +16,13 @@ log = logging.getLogger(__name__)
 def select_extra_chunks(session: Session, question: str, top: list[Hit]) -> list[Hit]:
     """The chunks, not in `top`, that the model wants as well. On any failure: none."""
     section_ids = list(dict.fromkeys(h.section_id for h in top))  # B5
-    chunks = load_section_chunks(session, section_ids)
     kept = {h.chunk_id for h in top}
-    if all(c.chunk_id in kept for c in chunks):  # nothing left to pick from
-        return []
-
-    numbered = dict(enumerate(chunks, start=1))
-    prompt = SELECT_USER.format(question=question, sections=describe_sections(numbered, kept))
     try:
+        chunks = load_section_chunks(session, section_ids)
+        if all(c.chunk_id in kept for c in chunks):  # nothing left to pick from
+            return []
+        numbered = dict(enumerate(chunks, start=1))
+        prompt = SELECT_USER.format(question=question, sections=describe_sections(numbered, kept))
         reply = complete(
             settings.SELECT_MODEL, SELECT_SYSTEM, [{"role": "user", "content": prompt}], settings.SELECT_MAX_TOKENS
         )
