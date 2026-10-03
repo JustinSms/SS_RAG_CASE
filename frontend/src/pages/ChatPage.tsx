@@ -24,12 +24,23 @@ export function ChatPage() {
     const history = historyOf(messages)
     setMessages((current) => [...current, { role: "user", content: question }])
     setWaiting(true)
+    // The answer is the last message while it streams.
+    const updateAnswer = (change: (answer: ChatMessage) => ChatMessage) =>
+      setMessages((current) => [...current.slice(0, -1), change(current[current.length - 1])])
+    let answering = false
     try {
-      const { answer, sources } = await askQuestion(question, history)
-      setMessages((current) => [...current, { role: "assistant", content: answer, sources }])
+      await askQuestion(question, history, {
+        onSources: (sources) => {
+          answering = true
+          setMessages((current) => [...current, { role: "assistant", content: "", sources, streaming: true }])
+        },
+        onText: (text) => updateAnswer((answer) => ({ ...answer, content: answer.content + text })),
+      })
+      updateAnswer((answer) => ({ ...answer, streaming: false }))
     } catch (e) {
+      // A half-written answer is replaced by the error.
       setMessages((current) => [
-        ...current,
+        ...(answering ? current.slice(0, -1) : current),
         { role: "assistant", content: (e as Error).message, error: true },
       ])
     } finally {

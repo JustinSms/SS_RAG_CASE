@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import anthropic
@@ -36,16 +37,45 @@ class FakeLLM:
         self.calls.append({"model": model, "system": system, "messages": messages})
         return self.reply
 
+    def stream(self, model, system, messages, max_tokens):
+        """The reply in pieces of one word, like a streamed answer."""
+        words = self(model, system, messages, max_tokens).split(" ")
+        yield from [word + " " for word in words[:-1]] + [words[-1]]
+
 
 @pytest.fixture
 def llm(monkeypatch):
     fake = FakeLLM()
     monkeypatch.setattr(pipeline, "complete", fake)
+    monkeypatch.setattr(pipeline, "stream", fake.stream)
     return fake
 
 
+class Reply:
+    """The /api/chat response, with the server-sent events read back."""
+
+    def __init__(self, response):
+        self.status_code = response.status_code
+        self.response = response
+        self.events = []  # (name, data) in the order they arrived
+        if response.headers["content-type"].startswith("text/event-stream"):
+            for block in response.text.strip().split("\n\n"):
+                name, data = block.split("\n")
+                self.events.append((name.removeprefix("event: "), json.loads(data.removeprefix("data: "))))
+
+    @property
+    def names(self):
+        return [name for name, _ in self.events]
+
+    def json(self):
+        if not self.events:
+            return self.response.json()
+        text = "".join(data for name, data in self.events if name == "text")
+        return {"answer": text, "sources": dict(self.events)["sources"]}
+
+
 def ask(client, question="How long is the notice?", history=()):
-    return client.post("/api/chat", json={"question": question, "history": list(history)})
+    return Reply(client.post("/api/chat", json={"question": question, "history": list(history)}))
 
 
 def test_nothing_above_the_cutoff_gives_not_found_without_calling_the_model(client, monkeypatch, llm):
@@ -84,11 +114,46 @@ def test_answer_is_built_from_the_labelled_context_in_document_order(client, mon
     assert llm.calls[0]["model"] == settings.ANSWER_MODEL
 
 
-def test_unknown_ids_in_the_answer_are_dropped(client, monkeypatch, llm):
+def test_unknown_ids_in_a_complete_answer_are_dropped(monkeypatch, llm):
     monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: [hit(1, "Text.")])
     llm.reply = "Real. [c1] Invented. [c9]"
 
-    assert ask(client).json()["answer"] == "Real. [c1] Invented."
+    assert pipeline.answer_question(None, "question", []).answer == "Real. [c1] Invented."
+
+
+def test_the_answer_streams_after_the_sources_and_ends_with_done(client, monkeypatch, llm):
+    monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: [hit(3, "Text.")])
+    llm.reply = "Thirty days. [c1]"
+
+    reply = ask(client)
+
+    assert reply.names == ["sources", "text", "text", "text", "done"]
+    assert [data for name, data in reply.events if name == "text"] == ["Thirty ", "days. ", "[c1]"]
+    assert reply.events[0][1]["c1"]["page_start"] == 3
+
+
+def test_a_failure_while_streaming_ends_with_an_error_event(client, monkeypatch, llm):
+    monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: [hit(1, "Text.")])
+
+    def breaks_halfway(*args):
+        yield "Thirty "
+        raise anthropic.APIConnectionError(request=httpx.Request("POST", "https://api.anthropic.com"))
+
+    monkeypatch.setattr(pipeline, "stream", breaks_halfway)
+
+    reply = ask(client)
+
+    assert reply.status_code == 200
+    assert reply.names == ["sources", "text", "error"]
+    assert "could not be reached" in reply.events[-1][1]
+
+
+def test_not_found_is_sent_as_a_normal_stream(client, monkeypatch, llm):
+    monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: [])
+
+    reply = ask(client)
+
+    assert reply.events == [("sources", {}), ("text", NOT_FOUND), ("done", {})]
 
 
 def test_only_top_n_chunks_are_used(client, monkeypatch, llm):
@@ -122,13 +187,14 @@ def test_a_failing_answer_call_is_a_clear_error(client, monkeypatch):
 
     def fail(*args, **kwargs):
         raise anthropic.APIConnectionError(request=httpx.Request("POST", "https://api.anthropic.com"))
+        yield  # a generator, like the real stream: the call fails when the text is read
 
-    monkeypatch.setattr(pipeline, "complete", fail)
+    monkeypatch.setattr(pipeline, "stream", fail)
 
-    response = ask(client)
+    reply = ask(client)
 
-    assert response.status_code == 502
-    assert "could not be reached" in response.json()["detail"]
+    assert reply.names == ["sources", "error"]
+    assert "could not be reached" in reply.events[-1][1]
 
 
 def test_an_empty_question_is_rejected(client):

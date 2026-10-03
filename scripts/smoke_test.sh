@@ -66,22 +66,49 @@ ready() { [ "$(doc_status)" = ready ]; }
 wait_for "the document to be ready" ready
 
 echo "5/5 Asking: $QUESTION"
-curl -sf -X POST "$BASE/api/chat" -H 'Content-Type: application/json' \
-  -d "{\"question\": \"$QUESTION\", \"history\": []}" > "$work/answer.json"
+# -N: no curl buffering, so the arrival time of every event is the real one through nginx.
+curl -sfN -X POST "$BASE/api/chat" -H 'Content-Type: application/json' \
+  -d "{\"question\": \"$QUESTION\", \"history\": []}" \
+  | python3 -c '
+import sys, time
+start = time.time()
+for line in sys.stdin:
+    if line.startswith("event:"):
+        print(f"{time.time() - start:.2f} {line.strip()}", file=sys.stderr)
+    sys.stdout.write(line)
+' > "$work/answer.sse" 2> "$work/arrivals.txt"
 
-python3 - "$work/answer.json" <<'PY'
+python3 - "$work/answer.sse" "$work/arrivals.txt" <<'PY'
 import json, re, sys
 
-reply = json.load(open(sys.argv[1]))
-print("Answer:", reply["answer"])
-cited = re.findall(r"\[(c\d+(?:, c\d+)*)\]", reply["answer"])
+events = []  # (name, data) in arrival order
+for block in open(sys.argv[1]).read().strip().split("\n\n"):
+    name, data = block.split("\n")
+    events.append((name.removeprefix("event: "), json.loads(data.removeprefix("data: "))))
+names = [name for name, _ in events]
+if names[0] != "sources" or names[-1] != "done" or "error" in names:
+    sys.exit(f"FAIL: unexpected events {names}")
+texts = names.count("text")
+if texts < 2:
+    sys.exit(f"FAIL: the answer arrived in {texts} piece(s), so it was not streamed")
+
+# Streamed through nginx means the text events arrive spread over time, not all at the end.
+times = [float(line.split()[0]) for line in open(sys.argv[2]) if line.split()[1] == "event:" and "text" in line]
+if times[-1] - times[0] < 0.05:
+    sys.exit(f"FAIL: all text events arrived within {times[-1] - times[0]:.2f}s, nginx is probably buffering")
+
+sources = events[0][1]
+answer = "".join(data for name, data in events if name == "text")
+print("Answer:", answer)
+print(f"Streamed in {texts} pieces over {times[-1] - times[0]:.2f}s")
+cited = re.findall(r"\[(c\d+(?:, c\d+)*)\]", answer)
 ids = [i for group in cited for i in group.split(", ")]
-if not ids or any(i not in reply["sources"] for i in ids):
+if not ids or any(i not in sources for i in ids):
     sys.exit("FAIL: the answer has no valid source tag")
-source = reply["sources"][ids[0]]
+source = sources[ids[0]]
 if source["filename"] != "sample.pdf":
     sys.exit(f"FAIL: unexpected source {source}")
-if "thirty" not in reply["answer"].lower() and "30" not in reply["answer"]:
+if "thirty" not in answer.lower() and "30" not in answer:
     sys.exit("FAIL: the answer does not mention thirty days")
 print("Source:", source["filename"], "p.", source["page_start"], source["heading_path"])
 print("PASS")
