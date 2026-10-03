@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     MAX_CANDIDATES: int = 50
     TOP_N: int = 5
     RERANK_MIN_SCORE: float = 0.1  # reranker score is 0-1; provisional, tuned in the evaluation
+    RERANK_BATCH_SIZE: int = 8  # pairs per reranker batch; small, long chunks are heavy on CPU
+    RERANK_MAX_LENGTH: int = 2048  # tokens per (question, chunk) pair; a chunk is at most about 1,200
     HISTORY_TURNS: int = 4
 
     # Ingestion
