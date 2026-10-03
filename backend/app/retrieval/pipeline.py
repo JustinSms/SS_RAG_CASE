@@ -29,7 +29,9 @@ class Trace:
 
     search_question: str = ""  # B0: the standalone question used for retrieval
     candidates: list[uuid.UUID] = field(default_factory=list)  # B2: above the cutoff, best cosine first
+    cosine_scores: list[float] = field(default_factory=list)  # B2: one per candidate
     reranked: list[uuid.UUID] | None = None  # B3: best rerank score first; None if the reranker failed
+    rerank_scores: list[float] | None = None  # B3: one per reranked chunk
     best_rerank_score: float | None = None
     top_n: list[uuid.UUID] = field(default_factory=list)  # B4: the chunks kept
     not_found: bool = False  # B4: the answer model is not called
@@ -51,8 +53,8 @@ def history_messages(history: list[dict]) -> list[dict]:
     return [{"role": m["role"], "content": strip_citations(m["content"])} for m in recent]
 
 
-def rerank(question: str, hits: list[Hit]) -> tuple[list[Hit], float | None]:
-    """B3: the hits best first, and the best score. Reranker failure keeps the cosine order (score None)."""
+def rerank(question: str, hits: list[Hit]) -> tuple[list[Hit], list[float] | None]:
+    """B3: the hits best first, and their scores. Reranker failure keeps the cosine order (scores None)."""
     try:
         scores = get_reranker().score(question, [h.text for h in hits])
     except Exception:
@@ -60,7 +62,7 @@ def rerank(question: str, hits: list[Hit]) -> tuple[list[Hit], float | None]:
         return hits, None
     ranked = sorted(zip(hits, scores), key=lambda pair: pair[1], reverse=True)
     log.info("best rerank scores: %s", [round(score, 3) for _, score in ranked[:SCORES_LOGGED]])
-    return [hit for hit, _ in ranked], ranked[0][1]
+    return [hit for hit, _ in ranked], [score for _, score in ranked]
 
 
 def combine(top: list[Hit], selected: list[Hit]) -> list[Hit]:
@@ -76,13 +78,15 @@ def select_context(session: Session, question: str, history: list[dict]) -> tupl
     vector = get_embedder().embed([trace.search_question])[0]  # B1
     hits = search_chunks(session, vector)  # B2
     trace.candidates = [h.chunk_id for h in hits]
+    trace.cosine_scores = [h.similarity for h in hits]
     if not hits:
         trace.not_found = True
         return [], trace
 
-    ranked, trace.best_rerank_score = rerank(trace.search_question, hits)  # B3
-    if trace.best_rerank_score is not None:
+    ranked, trace.rerank_scores = rerank(trace.search_question, hits)  # B3
+    if trace.rerank_scores is not None:
         trace.reranked = [h.chunk_id for h in ranked]
+        trace.best_rerank_score = trace.rerank_scores[0]
     top = ranked[: settings.TOP_N]  # B4
     trace.top_n = [h.chunk_id for h in top]
     if trace.best_rerank_score is not None and trace.best_rerank_score < settings.RERANK_MIN_SCORE:

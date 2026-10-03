@@ -83,7 +83,7 @@ The full log, with what broke along the way, is in [docs/decisions.md](docs/deci
 - **Migrations.** The schema is created at startup.
 - **Other file types.** PDF only, 10 MB max.
 - **Header and footer filtering.** A running page header that PyMuPDF4LLM reads as a heading can become a section (seen on a test paper).
-- **Evaluation numbers.** Retrieval has not been measured on a question set yet, so `SIMILARITY_CUTOFF` (0.45) and `RERANK_MIN_SCORE` (0.1) are provisional. In a quick check, an English question against a German passage scored low enough to be refused at 0.1.
+- **Evaluation numbers.** The evaluation harness is in [eval/](eval/README.md) and runs as a compose profile. It needs the question set and a run before there are numbers (`eval/results.md`); until then `SIMILARITY_CUTOFF` (0.45) and `RERANK_MIN_SCORE` (0.1) are provisional. In a quick check, an English question against a German passage scored low enough to be refused at 0.1.
 - **Answer quality is not measured.** Only retrieval will be (see below); whether answers are correct is not evaluated yet.
 
 ## Next steps
