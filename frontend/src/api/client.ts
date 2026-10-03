@@ -14,3 +14,47 @@ export async function getHealth(): Promise<Health> {
   if (!response.ok) throw new Error(`Health check failed (${response.status})`)
   return response.json()
 }
+
+export type DocumentStatus = "processing" | "ready" | "failed"
+
+export type Document = {
+  id: string
+  filename: string
+  size_bytes: number
+  status: DocumentStatus
+  error: string | null
+  page_count: number | null
+  chunk_count: number | null
+  chunks_done: number
+  created_at: string
+}
+
+// The api reports errors as {detail: "..."}; fall back to the status code otherwise.
+async function errorMessage(response: Response): Promise<string> {
+  try {
+    const body = await response.json()
+    if (typeof body.detail === "string") return body.detail
+  } catch {
+    // body was not JSON
+  }
+  return `Request failed (${response.status})`
+}
+
+export async function listDocuments(): Promise<Document[]> {
+  const response = await fetch("/api/documents")
+  if (!response.ok) throw new Error(await errorMessage(response))
+  return response.json()
+}
+
+export async function uploadDocuments(files: File[]): Promise<void> {
+  const body = new FormData()
+  for (const file of files) body.append("files", file)
+  const response = await fetch("/api/documents", { method: "POST", body })
+  // 409 (already uploaded) arrives with its own message; the overwrite dialog comes later.
+  if (!response.ok) throw new Error(await errorMessage(response))
+}
+
+export async function deleteDocument(id: string): Promise<void> {
+  const response = await fetch(`/api/documents/${id}`, { method: "DELETE" })
+  if (!response.ok) throw new Error(await errorMessage(response))
+}
