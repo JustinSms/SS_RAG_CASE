@@ -4,6 +4,7 @@ from fastapi import APIRouter, Request
 from sqlalchemy import text
 
 from app.db.session import engine
+from app.retrieval.embedder import embedder_loaded
 from env.config import settings
 
 router = APIRouter()
@@ -43,6 +44,9 @@ def find_problems(key_status: str) -> list[dict]:
     if not check_db():
         problems.append({"code": "db_unreachable", "level": "error",
                          "message": "The database is not reachable."})
+    if not embedder_loaded():
+        problems.append({"code": "model_not_loaded", "level": "error",
+                         "message": "The embedding model is not loaded."})
     if key_status != "ok":
         problems.append({"code": f"api_key_{key_status}", "level": "error",
                          "message": KEY_PROBLEMS[key_status]})

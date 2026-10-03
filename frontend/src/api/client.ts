@@ -58,3 +58,26 @@ export async function deleteDocument(id: string): Promise<void> {
   const response = await fetch(`/api/documents/${id}`, { method: "DELETE" })
   if (!response.ok) throw new Error(await errorMessage(response))
 }
+
+export type Source = {
+  label: string
+  document_id: string
+  filename: string
+  page_start: number
+  page_end: number
+  heading_path: string
+}
+
+export type HistoryMessage = { role: "user" | "assistant"; content: string }
+
+export type ChatAnswer = { answer: string; sources: Record<string, Source> }
+
+export async function askQuestion(question: string, history: HistoryMessage[]): Promise<ChatAnswer> {
+  const response = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question, history }),
+  })
+  if (!response.ok) throw new Error(await errorMessage(response))
+  return response.json()
+}

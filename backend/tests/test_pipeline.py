@@ -86,3 +86,13 @@ def test_a_pdf_without_text_fails_with_a_clear_message(session_factory):
         document = session.get(Document, document_id)
         assert document.status == "failed"
         assert "No text found" in document.error
+
+
+def test_pipeline_embeds_every_chunk(session_factory):
+    document_id = store(session_factory, pdf_with_headings())
+
+    process_document(session_factory, document_id)
+
+    with session_factory() as session:
+        chunks = session.scalars(select(Chunk)).all()
+        assert chunks and all(c.embedding is not None for c in chunks)

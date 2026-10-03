@@ -14,6 +14,8 @@ dependencies = [
     "python-multipart>=0.0.32",
     "pymupdf>=1.28.2",
     "pymupdf4llm>=1.28.2",
+    "sentence-transformers",
+    "torch",
 ]
 
 [dependency-groups]
@@ -22,3 +24,12 @@ dev = ["pytest", "httpx"]
 [tool.pytest.ini_options]
 pythonpath = [".", ".."]
 testpaths = ["tests"]
+
+# Linux (the Docker image) gets the CPU-only torch wheel, a few GB smaller than the default.
+[tool.uv.sources]
+torch = { index = "pytorch-cpu", marker = "sys_platform == 'linux'" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

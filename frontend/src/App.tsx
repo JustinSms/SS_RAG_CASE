@@ -44,7 +44,7 @@ export default function App() {
       <SetupBanner problems={problems} />
       <main className="mx-auto max-w-5xl p-6">
         <Routes>
-          <Route path="/" element={<ChatPage health={health} error={error} />} />
+          <Route path="/" element={<ChatPage />} />
           <Route path="/upload" element={<UploadPage />} />
           <Route path="/database" element={<DatabasePage />} />
         </Routes>

@@ -6,7 +6,10 @@ import App from "./App"
 afterEach(() => vi.unstubAllGlobals())
 
 function stubHealth(body: unknown) {
-  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => body }))
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) => ({ ok: true, json: async () => (url === "/api/health" ? body : []) })),
+  )
 }
 
 function renderApp() {
@@ -17,10 +20,10 @@ function renderApp() {
   )
 }
 
-test("shows Backend ready when health has no problems", async () => {
+test("shows no banner when health has no problems", async () => {
   stubHealth({ healthy: true, problems: [] })
   renderApp()
-  expect(await screen.findByText("Backend ready")).toBeInTheDocument()
+  expect(await screen.findByLabelText("Question")).toBeInTheDocument()
   expect(screen.queryByRole("alert")).not.toBeInTheDocument()
 })
 
@@ -31,7 +34,6 @@ test("shows the banner with the problem message", async () => {
   })
   renderApp()
   expect(await screen.findByRole("alert")).toHaveTextContent("ANTHROPIC_API_KEY is not set.")
-  expect(screen.queryByText("Backend ready")).not.toBeInTheDocument()
 })
 
 test("shows the banner when the api cannot be reached", async () => {
