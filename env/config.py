@@ -17,12 +17,15 @@ class Settings(BaseSettings):
     EMBED_MODEL: str = "BAAI/bge-m3"
     EMBED_MODEL_REVISION: str = "5617a9f61b028005a4858fdac845db406aefb181"  # pinned commit
     RERANK_MODEL: str = "BAAI/bge-reranker-v2-m3"
+    RERANK_MODEL_REVISION: str = "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e"  # pinned commit
 
     # Retrieval
     SIMILARITY_CUTOFF: float = 0.45
     MAX_CANDIDATES: int = 50
     TOP_N: int = 5
-    RERANK_MIN_SCORE: float | None = None  # set during tuning (milestone 8)
+    RERANK_MIN_SCORE: float = 0.1  # reranker score is 0-1; provisional, tuned in the evaluation
+    RERANK_BATCH_SIZE: int = 8  # pairs per reranker batch; small, long chunks are heavy on CPU
+    RERANK_MAX_LENGTH: int = 2048  # tokens per (question, chunk) pair; a chunk is at most about 1,200
     HISTORY_TURNS: int = 4
 
     # Ingestion
