@@ -10,6 +10,9 @@ dependencies = [
     "sqlalchemy",
     "psycopg[binary]",
     "anthropic",
+    "pgvector>=0.5.0",
+    "python-multipart>=0.0.32",
+    "pymupdf>=1.28.2",
 ]
 
 [dependency-groups]

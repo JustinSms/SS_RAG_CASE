@@ -40,6 +40,11 @@ Seeded from the planning phase, 2026-10-03.
 - The browser polls `/api/health` every 5 s (`HEALTH_POLL_MS`), so the banner clears after the user fixes the key and restarts the api, without a reload. An unreachable api shows the same red banner.
 - `web` serves on 8080 (nginx container port 80); the `api` port 8000 is no longer published. For `npm run dev`, publish it again or run uvicorn locally (vite proxies `/api` to `localhost:8000`).
 - nginx 10m limit duplicates `MAX_UPLOAD_MB` (nginx cannot read pydantic settings); noted in `nginx.conf`. Base images pinned: `node:24.14.1-alpine`, `nginx:1.30.0-alpine`.
+- Upload checks run on all files of a request before any is stored; one bad file rejects the request. A `409` carries the existing document as `document` in the body (a file repeated inside one request gets `409` with `document: null`). PDFs are opened with PyMuPDF to detect encryption; a file PyMuPDF cannot open is `415`. Order of checks: size (`413`), header (`415`), readable/encrypted (`415`).
+- Files are stored as `UPLOADS_DIR/<document id>.pdf`; the original name lives only in the database, so odd file names never touch the file system.
+- Queue: one daemon worker thread over `queue.Queue`. A crash in the pipeline marks that document `failed` with the error and the worker carries on with the next one.
+- Unit tests use in-memory SQLite, not Postgres: `Vector` and `ARRAY` columns have JSON variants for SQLite (in `db/models.py`) and the HNSW index is Postgres-only. Cascade, the pgvector extension and the index were checked by hand against the real `db` container. Rejected: tests that need the `db` container (pytest would then not run on a laptop without Docker).
+- `pgvector`, `python-multipart` and `pymupdf` added to the backend (pinned by `uv.lock`); PyMuPDF is reused for parsing in milestone 4.
 
 ## What broke
 
