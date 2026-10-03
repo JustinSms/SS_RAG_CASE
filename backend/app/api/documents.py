@@ -7,10 +7,10 @@ import pymupdf
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.db.models import Document
+from app.db.models import Document, Section
 from app.db.session import get_session
 from env.config import settings
 
@@ -35,6 +35,7 @@ class DocumentOut(BaseModel):
     chunk_count: int | None
     chunks_done: int
     created_at: datetime
+    section_count: int = 0  # filled in by the list; the Database page shows it
 
 
 def file_path(document_id: uuid.UUID) -> Path:
@@ -104,7 +105,14 @@ async def upload(
 
 @router.get("", response_model=list[DocumentOut])
 def list_documents(session: Session = Depends(get_session)):
-    return session.scalars(select(Document).order_by(Document.created_at.desc())).all()
+    documents = session.scalars(select(Document).order_by(Document.created_at.desc())).all()
+    section_counts = dict(
+        session.execute(select(Section.document_id, func.count()).group_by(Section.document_id)).all()
+    )
+    return [
+        DocumentOut.model_validate(d).model_copy(update={"section_count": section_counts.get(d.id, 0)})
+        for d in documents
+    ]
 
 
 def get_document(document_id: uuid.UUID, session: Session) -> Document:

@@ -5,6 +5,7 @@ from fastapi import FastAPI
 
 from app.api.chat import router as chat_router
 from app.api.documents import router as documents_router
+from app.api.sections import router as sections_router
 from app.db.session import SessionLocal, create_tables
 from app.health import router as health_router
 from app.ingestion.queue import DocumentQueue, recover_interrupted
@@ -32,4 +33,5 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Document Chat", lifespan=lifespan)
 app.include_router(health_router)
 app.include_router(documents_router)
+app.include_router(sections_router)
 app.include_router(chat_router)
