@@ -1,52 +1,9 @@
-import pytest
-import yaml
 from sqlalchemy import select
-from sqlalchemy.orm import sessionmaker
 
-from app.db.models import Chunk, Document, Section
 from app.retrieval import pipeline
-from app.retrieval.search import to_hit
 from env.config import settings
-from eval import ingest, run
-from eval.db import EvalBase, Result
-from tests.conftest import make_pdf
-
-
-@pytest.fixture
-def eval_session(session_factory, tmp_path, monkeypatch):
-    """The test database with the eval tables added, a PDF ingested and a question file written."""
-    engine = session_factory.kw["bind"].execution_options(schema_translate_map={"eval": None})
-    EvalBase.metadata.create_all(engine)
-
-    pdfs = tmp_path / "pdfs"
-    pdfs.mkdir()
-    (pdfs / "notes.pdf").write_bytes(make_pdf("The notice period is thirty days."))
-    ingest.ingest_all(session_factory, pdfs, tmp_path / "trees")
-
-    with session_factory() as session:
-        heading = session.scalar(select(Section.heading_path))
-    questions = tmp_path / "questions"
-    questions.mkdir()
-    (questions / "notes.yaml").write_text(yaml.safe_dump([
-        {"id": "n-01", "document": "notes.pdf", "question": "How long is the notice period?", "type": "single_fact",
-         "answerable": True, "gold": [{"document": "notes.pdf", "heading": heading}]},
-        {"id": "n-02", "document": "notes.pdf", "question": "And for the landlord?", "type": "follow_up",
-         "answerable": True, "gold": [{"document": "notes.pdf", "heading": heading}],
-         "history": [{"role": "user", "content": "How long is the notice period?"}]},
-    ]))
-    monkeypatch.setattr(run, "QUESTIONS_DIR", questions)
-
-    def search(session, vector):  # pgvector's cosine search does not run on SQLite
-        rows = session.execute(
-            select(Chunk, Section.heading_path, Document.filename)
-            .join(Section, Chunk.section_id == Section.id).join(Document, Chunk.document_id == Document.id)
-        ).all()
-        hits = [to_hit(c, path, name, 0.8) for c, path, name in rows]
-        return [h for h in hits if h.similarity >= settings.SIMILARITY_CUTOFF]
-
-    monkeypatch.setattr(pipeline, "search_chunks", search)
-    with sessionmaker(engine)() as session:
-        yield session
+from eval import run
+from eval.db import Result
 
 
 def stages(session, label, question_id):
