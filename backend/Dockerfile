@@ -14,7 +14,12 @@ WORKDIR /app/backend
 COPY backend/pyproject.toml backend/uv.lock ./
 RUN uv sync --frozen --no-install-project
 
+# The model is downloaded at build time (pinned revision); the app never downloads at runtime.
 COPY env /app/env
+COPY backend/download_models.py ./
+RUN python download_models.py
+ENV HF_HUB_OFFLINE=1
+
 COPY backend/app ./app
 COPY backend/tests ./tests
 
