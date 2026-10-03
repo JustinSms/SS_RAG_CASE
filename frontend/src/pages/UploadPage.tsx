@@ -3,6 +3,7 @@ import { deleteDocument, DuplicateError, uploadDocuments, type Document } from "
 import { DocumentList } from "@/components/DocumentList"
 import { DuplicateDialog } from "@/components/DuplicateDialog"
 import { Dropzone } from "@/components/Dropzone"
+import { PageHeader } from "@/components/PageHeader"
 import { useDocuments } from "@/hooks/useDocuments"
 
 export function UploadPage() {
@@ -47,18 +48,29 @@ export function UploadPage() {
     await refresh()
   }
 
+  const ready = documents?.filter((d) => d.status === "ready").length ?? 0
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl">Upload</h1>
-      <Dropzone onUpload={upload} />
-      {overwriteError && <p className="text-sm text-destructive">{overwriteError}</p>}
-      <DuplicateDialog files={duplicates} onOverwrite={overwrite} onCancel={() => setDuplicates([])} />
-      <section className="space-y-3">
-        <h2 className="text-lg">Documents</h2>
-        {error && <p className="text-sm text-destructive">Could not load documents: {error}</p>}
-        {deleteError && <p className="text-sm text-destructive">{deleteError}</p>}
-        {documents && <DocumentList documents={documents} onDelete={remove} />}
-      </section>
+    <div className="h-full overflow-y-auto">
+      <div className="mx-auto max-w-4xl space-y-8 px-8 py-10">
+        <PageHeader title="Upload" description="Add PDFs. Each one is parsed, split into sections and indexed for chat." />
+        <Dropzone onUpload={upload} />
+        {overwriteError && <p className="text-sm text-destructive">{overwriteError}</p>}
+        <DuplicateDialog files={duplicates} onOverwrite={overwrite} onCancel={() => setDuplicates([])} />
+        <section className="space-y-3">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-lg">Documents</h2>
+            {documents && documents.length > 0 && (
+              <span className="text-sm text-muted-foreground">
+                {ready} of {documents.length} ready
+              </span>
+            )}
+          </div>
+          {error && <p className="text-sm text-destructive">Could not load documents: {error}</p>}
+          {deleteError && <p className="text-sm text-destructive">{deleteError}</p>}
+          {documents && <DocumentList documents={documents} onDelete={remove} />}
+        </section>
+      </div>
     </div>
   )
 }

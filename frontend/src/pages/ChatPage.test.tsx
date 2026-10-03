@@ -1,9 +1,13 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import { MemoryRouter } from "react-router-dom"
 import { afterEach, expect, test, vi } from "vitest"
+import { CONVERSATIONS_KEY, ConversationsProvider, MAX_SAVED_CHATS } from "@/components/ConversationsProvider"
 import { ChatPage } from "./ChatPage"
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  localStorage.clear()
+})
 
 const READY = { id: "d1", filename: "Contract.pdf", status: "ready", chunks_done: 0 }
 const SOURCE = {
@@ -39,9 +43,11 @@ function stubApi(documents: unknown[], chat: () => unknown) {
 }
 
 function renderChat() {
-  render(
+  return render(
     <MemoryRouter>
-      <ChatPage />
+      <ConversationsProvider>
+        <ChatPage />
+      </ConversationsProvider>
     </MemoryRouter>,
   )
 }
@@ -113,4 +119,51 @@ test("an error event replaces the half-written answer", async () => {
 
   expect(await screen.findByText("Model unreachable")).toBeInTheDocument()
   expect(screen.queryByText(/Thirty/)).not.toBeInTheDocument()
+})
+
+test("an old chat stays in the history and opens again", async () => {
+  stubApi([READY], () => sse(event("sources", { c1: SOURCE }), event("text", "Thirty days. [c1]"), event("done", {})))
+  renderChat()
+  await ask("Notice period?")
+  await screen.findByText("Thirty days.")
+
+  fireEvent.click(screen.getByRole("button", { name: "New chat" }))
+  expect(screen.queryByText("Thirty days.")).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole("button", { name: /^Notice period\?/ }))
+  expect(screen.getByText("Thirty days.")).toBeInTheDocument()
+})
+
+test("old chats are kept after a reload and can be deleted", async () => {
+  stubApi([READY], () => sse(event("sources", { c1: SOURCE }), event("text", "Thirty days. [c1]"), event("done", {})))
+  const { unmount } = renderChat()
+  await ask("Notice period?")
+  await screen.findByText("Thirty days.")
+  unmount()
+
+  // After a restart the chat that was open is open again.
+  renderChat()
+  expect(screen.getByText("Thirty days.")).toBeInTheDocument()
+  fireEvent.click(screen.getByRole("button", { name: "Delete chat Notice period?" }))
+  expect(screen.queryByText("Thirty days.")).not.toBeInTheDocument()
+  expect(screen.getByText("Your chats will appear here.")).toBeInTheDocument()
+})
+
+test("only the newest chats are kept", async () => {
+  const old = Array.from({ length: MAX_SAVED_CHATS }, (_, i) => ({
+    id: `old${i}`,
+    title: `Old question ${i}`,
+    updatedAt: "2026-10-01T10:00:00Z",
+    messages: [{ role: "user", content: `Old question ${i}` }],
+  }))
+  localStorage.setItem(CONVERSATIONS_KEY, JSON.stringify(old))
+  stubApi([READY], () => sse(event("sources", { c1: SOURCE }), event("text", "Thirty days. [c1]"), event("done", {})))
+  renderChat()
+  await ask("Notice period?")
+  await screen.findByText("Thirty days.")
+
+  const saved = JSON.parse(localStorage.getItem(CONVERSATIONS_KEY)!)
+  expect(saved).toHaveLength(MAX_SAVED_CHATS)
+  expect(saved[0].title).toBe("Notice period?")
+  expect(screen.queryByText(`Old question ${MAX_SAVED_CHATS - 1}`)).not.toBeInTheDocument()
+  expect(screen.getByText("Old question 0")).toBeInTheDocument()
 })
