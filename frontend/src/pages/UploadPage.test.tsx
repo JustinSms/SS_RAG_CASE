@@ -15,6 +15,7 @@ function doc(overrides: Partial<Document>): Document {
     page_count: 3,
     chunk_count: 5,
     chunks_done: 0,
+    section_count: 0,
     created_at: "2026-10-03T10:00:00Z",
     ...overrides,
   }
