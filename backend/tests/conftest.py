@@ -7,7 +7,7 @@ from sqlalchemy.pool import StaticPool
 
 from app import health, main
 from app.ingestion import enricher
-from app.retrieval import embedder
+from app.retrieval import embedder, reranker
 from app.db.models import Base
 from app.db.session import get_session
 from env.config import settings
@@ -25,6 +25,20 @@ def fake_embedder(monkeypatch):
     """No test loads the real model."""
     fake = FakeEmbedder()
     monkeypatch.setattr(embedder, "_embedder", fake)
+    return fake
+
+
+class FakeReranker:
+    """Stands in for the cross-encoder: every chunk scores well, so the order stays as given."""
+
+    def score(self, question, texts):
+        return [0.9 for _ in texts]
+
+
+@pytest.fixture(autouse=True)
+def fake_reranker(monkeypatch):
+    fake = FakeReranker()
+    monkeypatch.setattr(reranker, "_reranker", fake)
     return fake
 
 
