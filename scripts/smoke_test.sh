@@ -32,7 +32,9 @@ trap cleanup EXIT
 echo "1/5 Cloning $repo"
 git clone -q "$repo" "$work/clone"
 cd "$work/clone"
-echo "ANTHROPIC_API_KEY=$key" > env/.env
+# Same steps as the README: copy the template, then fill in the key.
+cp env/.env.template env/.env
+sed -i.bak "s|^ANTHROPIC_API_KEY=.*|ANTHROPIC_API_KEY=$key|" env/.env && rm env/.env.bak
 
 echo "2/5 docker compose up --build (the first build takes a while)"
 docker compose up --build -d >/dev/null
