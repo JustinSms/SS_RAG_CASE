@@ -27,6 +27,7 @@ export type Document = {
   chunk_count: number | null
   chunks_done: number
   created_at: string
+  section_count: number
 }
 
 // nginx answers an oversized upload with an HTML page, so the status code has to be enough.
@@ -66,6 +67,43 @@ export async function uploadDocuments(files: File[], overwrite = false): Promise
 export async function deleteDocument(id: string): Promise<void> {
   const response = await fetch(`/api/documents/${id}`, { method: "DELETE" })
   if (!response.ok) throw new Error(await errorMessage(response))
+}
+
+export type Section = {
+  id: string
+  parent_id: string | null
+  heading: string
+  level: number
+  heading_path: string
+  page_start: number
+  page_end: number
+  chunk_count: number
+}
+
+export type Chunk = {
+  id: string
+  position_in_section: number
+  text: string
+  context: string | null
+  summary: string | null
+  keywords: string[] | null
+  enriched: boolean
+  page_start: number
+  page_end: number
+  has_embedding: boolean
+}
+
+// Sections come in document order, parents before their children.
+export async function listSections(documentId: string): Promise<Section[]> {
+  const response = await fetch(`/api/documents/${documentId}/sections`)
+  if (!response.ok) throw new Error(await errorMessage(response))
+  return response.json()
+}
+
+export async function listChunks(sectionId: string): Promise<Chunk[]> {
+  const response = await fetch(`/api/sections/${sectionId}/chunks`)
+  if (!response.ok) throw new Error(await errorMessage(response))
+  return response.json()
 }
 
 export type Source = {
