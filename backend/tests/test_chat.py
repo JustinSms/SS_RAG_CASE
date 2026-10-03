@@ -16,6 +16,7 @@ def hit(position: int, text: str, similarity: float = 0.8) -> Hit:
     return Hit(
         chunk_id=uuid.uuid4(),
         document_id=DOCUMENT_ID,
+        section_id=uuid.uuid4(),
         filename="Contract.pdf",
         heading_path=f"{position} Terms",
         text=text,
