@@ -50,6 +50,7 @@ Seeded from the planning phase, 2026-10-03.
 - Sections: heading level = number of `#`. A skipped level (`#` then `###`) attaches to the nearest shallower heading. Headings without text stay as empty sections (no chunks), so the tree matches the table of contents. Text before the first heading goes into a root section called "Start of document". A PDF with no headings at all becomes "Part 1", "Part 2", ... of about `MAX_CHUNK_SIZE` tokens.
 - Chunker: the overlap is the last `CHUNK_OVERLAP_TOKENS` of the previous chunk, cut at a word boundary, so a chunk holds at most `MAX_CHUNK_SIZE - CHUNK_OVERLAP_TOKENS` tokens of new text. A paragraph longer than that is cut at word boundaries. A page break inside a paragraph (PyMuPDF4LLM works per page) splits it into two paragraphs, one per page.
 - Milestone 4: documents become `ready` after chunking, although nothing is embedded yet. They cannot be searched until milestone 6.
+- Milestone 5: the dropzone limit is a constant (`MAX_UPLOAD_MB = 10` in `frontend/src/lib/upload.ts`), the third copy of the limit next to `env/config.py` and nginx. Files that fail the browser check are skipped and the valid ones in the same drop are still uploaded (the backend would reject the whole request). The list polls only while a document is `processing`. The progress bar is left out until a later milestone, as the plan says.
 
 ## What broke
 
