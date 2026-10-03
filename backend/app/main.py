@@ -7,11 +7,13 @@ from app.db.session import SessionLocal, create_tables
 from app.health import router as health_router
 from app.ingestion.queue import DocumentQueue, recover_interrupted
 from app.llm.client import check_api_key
+from app.retrieval.embedder import get_embedder
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.key_status = check_api_key()  # once at startup, result cached
+    get_embedder()  # load bge-m3 now, so the first upload and question are not slow
     create_tables()
     recover_interrupted(SessionLocal)
     app.state.queue = DocumentQueue(SessionLocal)

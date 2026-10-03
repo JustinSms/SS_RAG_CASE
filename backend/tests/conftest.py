@@ -6,9 +6,27 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app import health, main
+from app.ingestion import pipeline
 from app.db.models import Base
 from app.db.session import get_session
 from env.config import settings
+
+
+class FakeEmbedder:
+    """Stands in for bge-m3: a vector that depends on the text, no model needed."""
+
+    def embed(self, texts):
+        return [[float(len(t) % 7), 1.0, 0.0, 0.0] for t in texts]
+
+
+@pytest.fixture(autouse=True)
+def fake_embedder(monkeypatch):
+    """No test loads the real model."""
+    fake = FakeEmbedder()
+    monkeypatch.setattr(main, "get_embedder", lambda: fake)
+    monkeypatch.setattr(pipeline, "get_embedder", lambda: fake)
+    monkeypatch.setattr(health, "embedder_loaded", lambda: True)
+    return fake
 
 
 @pytest.fixture

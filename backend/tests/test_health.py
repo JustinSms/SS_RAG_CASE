@@ -33,3 +33,11 @@ def test_low_memory_is_a_warning_not_unhealthy(make_client):
         body = client.get("/api/health").json()
     assert body["healthy"] is True
     assert [p["code"] for p in body["problems"]] == ["low_memory"]
+
+
+def test_health_reports_an_unloaded_model(monkeypatch, make_client):
+    monkeypatch.setattr("app.health.embedder_loaded", lambda: False)
+    with make_client() as client:
+        response = client.get("/api/health")
+    assert response.json()["healthy"] is False
+    assert codes(response) == ["model_not_loaded"]
