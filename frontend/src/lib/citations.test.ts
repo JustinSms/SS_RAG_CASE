@@ -1,17 +1,14 @@
 import { expect, test } from "vitest"
-import { hideOpenCitation, splitAnswer } from "./citations"
+import { citationsToLinks, hideOpenCitation } from "./citations"
 
-test("splits text and citation groups", () => {
-  expect(splitAnswer("Thirty days. [c1] And ten. [c2, c3]")).toEqual([
-    "Thirty days. ",
-    { ids: ["c1"] },
-    " And ten. ",
-    { ids: ["c2", "c3"] },
-  ])
+test("turns citation tags into links", () => {
+  expect(citationsToLinks("Thirty days. [c1] And ten. [c2, c3]")).toBe(
+    "Thirty days. [c1](cite:c1) And ten. [c2 c3](cite:c2,c3)",
+  )
 })
 
 test("leaves other brackets and plain text alone", () => {
-  expect(splitAnswer("See [1].")).toEqual(["See [1]."])
+  expect(citationsToLinks("See [1].")).toBe("See [1].")
 })
 
 test("hides a tag that is still arriving, but not finished ones", () => {

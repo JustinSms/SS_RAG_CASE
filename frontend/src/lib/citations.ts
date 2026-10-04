@@ -1,18 +1,15 @@
-// The answer holds ids like [c3] or [c3, c7]; split it into text and groups of ids.
+// The answer holds ids like [c3] or [c3, c7].
 const CITATION = /\[\s*(c\d+(?:\s*,\s*c\d+)*)\s*\]/g
 
-export type AnswerPart = string | { ids: string[] }
+// Prefix of the link target a citation becomes, so the markdown renderer can swap it for a chip.
+export const CITATION_SCHEME = "cite:"
 
-export function splitAnswer(answer: string): AnswerPart[] {
-  const parts: AnswerPart[] = []
-  let last = 0
-  for (const match of answer.matchAll(CITATION)) {
-    if (match.index > last) parts.push(answer.slice(last, match.index))
-    parts.push({ ids: match[1].split(",").map((id) => id.trim()) })
-    last = match.index + match[0].length
-  }
-  if (last < answer.length) parts.push(answer.slice(last))
-  return parts
+// Turn each tag into a markdown link like [c3, c7] -> [c3](cite:c3,c7), so the answer can be rendered as markdown.
+export function citationsToLinks(answer: string): string {
+  return answer.replace(CITATION, (_, ids: string) => {
+    const list = ids.split(",").map((id) => id.trim())
+    return `[${list.join(" ")}](${CITATION_SCHEME}${list.join(",")})`
+  })
 }
 
 // While the answer streams, the end may hold a tag that is not finished yet ("[c1" or "[c1, c"). Hide it.

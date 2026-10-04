@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # Retrieval
     SIMILARITY_CUTOFF: float = 0.45
-    MAX_CANDIDATES: int = 50
+    MAX_CANDIDATES: int = 20
     TOP_N: int = 5
     RERANK_MIN_SCORE: float = 0.1  # reranker score is 0-1; provisional, tuned in the evaluation
     RERANK_BATCH_SIZE: int = 8  # pairs per reranker batch; small, long chunks are heavy on CPU

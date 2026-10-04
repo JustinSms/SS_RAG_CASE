@@ -1,7 +1,8 @@
 import { CircleAlert, Sparkles } from "lucide-react"
 import type { Source } from "@/api/client"
 import { CitationChip } from "@/components/CitationChip"
-import { hideOpenCitation, splitAnswer } from "@/lib/citations"
+import ReactMarkdown, { defaultUrlTransform } from "react-markdown"
+import { CITATION_SCHEME, citationsToLinks, hideOpenCitation } from "@/lib/citations"
 import { cn } from "@/lib/utils"
 
 export type ChatMessage = {
@@ -12,16 +13,34 @@ export type ChatMessage = {
   streaming?: boolean
 }
 
+// Markdown links with the cite: scheme are citations; show each cited source as a chip.
 function Answer({ message }: { message: ChatMessage }) {
-  return splitAnswer(message.streaming ? hideOpenCitation(message.content) : message.content).map((part, i) =>
-    typeof part === "string" ? (
-      <span key={i}>{part}</span>
-    ) : (
-      part.ids.map((id) => {
-        const source = message.sources?.[id]
-        return source && <CitationChip key={`${i}-${id}`} source={source} />
-      })
-    ),
+  const text = message.streaming ? hideOpenCitation(message.content) : message.content
+  return (
+    <ReactMarkdown
+      urlTransform={(url) => (url.startsWith(CITATION_SCHEME) ? url : defaultUrlTransform(url))}
+      components={{
+        a: ({ href, children, ...props }) =>
+          href?.startsWith(CITATION_SCHEME) ? (
+            href
+              .slice(CITATION_SCHEME.length)
+              .split(",")
+              .map((id) => {
+                const source = message.sources?.[id]
+                return source && <CitationChip key={id} source={source} />
+              })
+          ) : (
+            <a href={href} target="_blank" rel="noreferrer" {...props}>
+              {children}
+            </a>
+          ),
+        p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
+        ul: ({ children }) => <ul className="mb-3 list-disc space-y-1 pl-6 last:mb-0">{children}</ul>,
+        ol: ({ children }) => <ol className="mb-3 list-decimal space-y-1 pl-6 last:mb-0">{children}</ol>,
+      }}
+    >
+      {citationsToLinks(text)}
+    </ReactMarkdown>
   )
 }
 
@@ -53,7 +72,8 @@ export function MessageList({ messages, waiting }: { messages: ChatMessage[]; wa
             <Avatar error={message.error} />
             <div
               className={cn(
-                "min-w-0 flex-1 pt-1 leading-relaxed whitespace-pre-wrap",
+                "min-w-0 flex-1 pt-1 leading-relaxed",
+                message.error && "whitespace-pre-wrap",
                 message.error && "rounded-xl border border-primary/20 bg-accent px-4 py-2.5 pt-2.5 text-accent-foreground",
               )}
             >
