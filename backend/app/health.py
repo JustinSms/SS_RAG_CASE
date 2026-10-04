@@ -13,9 +13,9 @@ MEMINFO = Path("/proc/meminfo")
 KB_PER_GB = 1024 * 1024
 
 KEY_PROBLEMS = {
-    "missing": "ANTHROPIC_API_KEY is not set. Add it to env/.env and restart the api container.",
-    "invalid": "ANTHROPIC_API_KEY was rejected by Anthropic. Check the key in env/.env and restart.",
-    "unreachable": "Could not reach the Anthropic API to check the key. Check the network and restart.",
+    "missing": "ANTHROPIC_API_KEY is not set. Add it to env/.env, then run `docker compose up -d api`.",
+    "invalid": "ANTHROPIC_API_KEY was rejected by Anthropic. Check the key in env/.env, then run `docker compose up -d api`.",
+    "unreachable": "Could not reach the Anthropic API to check the key. Check the network, then run `docker compose up -d api`.",
 }
 
 

@@ -131,7 +131,7 @@ def thresholds_for(question: Question, folds: dict | None, scores_only: bool) ->
 
 def progress_line(number: int, questions: list[Question], question: Question, outcome: Outcome, progress: Progress,
                   tally: dict) -> str:
-    """'[ 37/120] ai-act-07  hit             2.1s | elapsed 1:18 | left ~2:55 | hits 31/33 | refused 3/4'"""
+    """'[ 37/120] cfpb-01  hit               2.1s | elapsed 1:18 | left ~2:55 | hits 31/33 | refused 3/4'"""
     width = len(str(len(questions)))
     id_width = max(len(q.id) for q in questions)
     line = (
@@ -177,6 +177,12 @@ def run_all(session: Session, label: str, folds: dict | None = None, scores_only
     return sorted({r.question_id for r in session.scalars(select(Result).where(Result.run == label, Result.fallback))})
 
 
+def require_api_key(scores_only: bool) -> None:
+    """The full run calls Sonnet for the selection; the scores-only run calls no model (no selection, no history)."""
+    if not scores_only and check_api_key() != "ok":
+        raise SystemExit("ANTHROPIC_API_KEY is missing or invalid: the selection step needs it (or use --scores-only).")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--label", required=True, help="name of the run")
@@ -187,8 +193,7 @@ def main() -> None:
     from app.db.session import SessionLocal
 
     ensure_database()
-    if check_api_key() != "ok":
-        raise SystemExit("ANTHROPIC_API_KEY is missing or invalid: the selection step needs it.")
+    require_api_key(args.scores_only)
     get_reranker()  # unlike in the app, a reranker that cannot load stops the run: the numbers would be wrong
     with SessionLocal() as session:
         folds = json.loads(args.folds.read_text()) if args.folds else None

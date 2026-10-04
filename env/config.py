@@ -63,7 +63,7 @@ class Settings(BaseSettings):
     EVAL_CUTOFF_GRID: list[float] = [0.3, 0.4, 0.5, 0.6]  # SIMILARITY_CUTOFF values tried in the tuning
     EVAL_RERANK_GRID: list[float] = [0.01, 0.03, 0.1, 0.3, 0.5]  # RERANK_MIN_SCORE values tried
     EVAL_TOP_N_GRID: list[int] = [3, 5, 8]  # TOP_N values tried
-    EVAL_TUNE_TOLERANCE: float = 0.01  # settings within this accuracy of the best count as equally good
+    EVAL_TUNE_TOLERANCE: float = 0.01  # settings within this share of the questions of the best count as equally good
     EVAL_CONFIDENCE_Z: float = 1.96  # 95% intervals
 
     # Health checks

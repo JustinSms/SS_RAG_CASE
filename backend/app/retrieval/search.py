@@ -27,6 +27,7 @@ class Hit:
     page_end: int
     position_in_document: int
     similarity: float  # 0 for chunks that were not found by the search (see load_section_chunks)
+    rerank: float | None = None  # B3: set by the reranker; None if it failed or the chunk was selected
     summary: str | None = None
     keywords: list[str] | None = None
 

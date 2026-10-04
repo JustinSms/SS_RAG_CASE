@@ -87,9 +87,9 @@ From milestone 6 on, also run the clean-clone smoke test before merging: `script
 
 **Build:**
 - `frontend/` with Vite + React + TypeScript, Tailwind v4, shadcn/ui (components copied into `components/ui/`), `globals.css` from `docs/design/globals.css`, Inter font.
-- App shell: dark top bar, three nav links (Chat `/`, Upload `/upload`, Database `/database`), empty placeholder pages.
+- App shell: dark top bar, three nav links (Chat `/`, Upload `/upload`, Database `/database`), empty placeholder pages. (Since changed: a dark sidebar replaces the top bar; see `decisions.md`.)
 - `api/client.ts` with a typed `getHealth()`; `SetupBanner` shown when health reports problems; the Chat placeholder shows "Backend ready".
-- `frontend/Dockerfile` (multi-stage: node build → nginx) and `nginx.conf`: serves the SPA, proxies `/api` to `api`, `client_max_body_size 10m`, `proxy_buffering off` for `/api/chat`.
+- `frontend/Dockerfile` (multi-stage: node build → nginx) and `nginx.conf`: serves the SPA, proxies `/api` to `api`, `client_max_body_size 10m`, `proxy_buffering off` for `/api/chat`. (Since changed: 11m, one file per request, and a 300 s read timeout for `/api/chat`; see `decisions.md`.)
 - `web` service in compose, port 8080, `depends_on: api healthy`. The `api` port no longer needs to be exposed.
 
 **Out of scope:** real page content.
@@ -97,7 +97,7 @@ From milestone 6 on, also run the clean-clone smoke test before merging: `script
 **Suggested commits:** Vite + Tailwind + shadcn setup → theme and app shell → health client and banner → Dockerfile, nginx, compose.
 
 **Check:**
-- `docker compose up --build`, open `http://localhost:8080`: dark header, red active link, "Backend ready".
+- `docker compose up --build`, open `http://localhost:8080`: dark header, red active link, "Backend ready". (Since changed: dark sidebar; see `decisions.md`.)
 - Without the key: the red banner says what is wrong.
 - `npm run build` and `npm run lint` pass.
 
@@ -132,7 +132,7 @@ From milestone 6 on, also run the clean-clone smoke test before merging: `script
 **Read:** `design/retrieval-approach.md` A3-A5, A8; `design/app-structure.md` §4, §5; `design/testing-evaluation.md` §1 (`sections.py`, `chunker.py` rows).
 
 **Build:**
-- `ingestion/parser.py`: PyMuPDF4LLM → markdown per page, keeping page numbers. PDFs without text rejected as "no text found".
+- `ingestion/parser.py`: PyMuPDF4LLM → markdown per page, keeping page numbers. PDFs without text are marked failed with "no text found" (the upload itself is accepted).
 - `ingestion/sections.py`: headings → tree with `parent_id`, `level`, `heading_path`, `position`, page range. Text before the first heading goes into a root section. No headings → pseudo-sections of `MAX_CHUNK_SIZE`.
 - `ingestion/chunker.py`: paragraph boundaries, at most `MAX_CHUNK_SIZE` tokens, `CHUNK_OVERLAP_TOKENS` overlap, never crosses a section, correct page ranges, `position_in_section` and `position_in_document`.
 - `ingestion/pipeline.py`: parse → sections → chunks → store, updating `status`, `page_count`, `chunk_count`.
@@ -174,7 +174,7 @@ From milestone 6 on, also run the clean-clone smoke test before merging: `script
 - `api` Dockerfile: CPU-only PyTorch; bge-m3 downloaded at **build time** with a pinned revision; `HF_HUB_OFFLINE=1` at runtime. `/api/health` also checks the model is loaded.
 - `retrieval/embedder.py` (batches of `EMBED_BATCH_SIZE`); the ingestion pipeline embeds the chunk text and stores the vector.
 - `retrieval/search.py`: cosine search, similarity ≥ `SIMILARITY_CUTOFF`, capped, keep top `TOP_N` by cosine for now. Nothing above the cutoff → "not found in your documents" without calling the model.
-- `llm/client.py` (timeout, retries) and `llm/prompts.py` (answer prompt: context only, end each statement with `[cXX]` ids).
+- `llm/client.py` (timeout, retries) and `llm/prompts.py` (answer prompt: context only, end each statement with `[cXX]` ids). (Since changed: ids at the end of the sentence or short paragraph; see `decisions.md`.)
 - `retrieval/citations.py`: map `[c12]` to document, pages, heading path; drop unknown ids.
 - `POST /api/chat` returning **plain JSON** `{answer, sources}` for now (SSE comes in milestone 10). Question and recent history come from the client.
 - Basic Chat page: message list, input, answer with the source tags rendered from `sources`, "New chat", empty state linking to Upload, errors shown as a message.
@@ -255,7 +255,7 @@ From milestone 6 on, also run the clean-clone smoke test before merging: `script
 
 **Build:**
 - `/api/chat` as SSE: `sources` event (id → document, pages, heading path), then text events, then `done`; an `error` event on failure.
-- `api/client.ts` SSE reader with `fetch`; `CitationChip` replaces `[c12]` as text arrives; several ids in one bracket.
+- `api/client.ts` SSE reader with `fetch`; `CitationChip` replaces `[c12]` as text arrives; several ids in one bracket. (Since changed: each id in a bracket becomes its own tag; see `decisions.md`.)
 - Clicking a tag opens `/api/documents/{id}/file#page=N` in a new tab.
 - Check nginx really streams (no buffering).
 
@@ -290,7 +290,7 @@ From milestone 6 on, also run the clean-clone smoke test before merging: `script
 
 **Build:**
 - `GET /api/documents/{id}/sections` and `GET /api/sections/{id}/chunks` (+ tests).
-- `DatabasePage`: documents table → `SectionTree` → `ChunkTable` (text, context, summary, keywords, pages, "not enriched" marker, embedding present yes/no). No delete here.
+- `DatabasePage`: documents table → `SectionTree` → `ChunkTable` (since changed: `ChunkList`, cards instead of a table) (text, context, summary, keywords, pages, "not enriched" marker, embedding present yes/no). No delete here.
 
 **Check:** click through a real PDF from document to sections to chunks; the numbers match the Upload page.
 
@@ -320,7 +320,7 @@ Only start once milestones 1-13 are merged and the happy path is stable. Split i
 **Read:** `design/testing-evaluation.md` §2; `design/evaluation-metrics.md` (all).
 
 **Build:**
-- `eval/` as a compose profile (`docker compose --profile eval run --rm eval python run.py`), own database `docchat_eval` created from code.
+- `eval/` as a compose profile (`docker compose --profile eval run --rm eval python run.py --label sweep --scores-only`), own database `docchat_eval` created from code.
 - Question YAML files (5 PDFs × 24 questions, standalone, about 20 unanswerable; gold headings picked from the parser's section tree); you spot-check 10 per PDF.
 - `run.py` calls the same retrieval function as `/api/chat` and records the trace; `report.py` computes the rates with Wilson intervals and the leave-one-PDF-out tuning of `SIMILARITY_CUTOFF`, `RERANK_MIN_SCORE`, `TOP_N`.
 - `eval/results.md` committed and linked from the README; set the tuned defaults in `env/config.py`.
