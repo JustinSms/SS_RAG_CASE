@@ -18,7 +18,9 @@ export function DuplicateDialog({ files, onOverwrite, onCancel }: Props) {
         <DialogHeader>
           <DialogTitle>Already uploaded</DialogTitle>
           <DialogDescription>
-            This document is already uploaded. Overwrite it?
+            {files.length > 1
+              ? "These documents are already uploaded. Overwrite them?"
+              : "This document is already uploaded. Overwrite it?"}
           </DialogDescription>
         </DialogHeader>
         <p className="truncate text-sm">{files.map((file) => file.name).join(", ")}</p>

@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     ANSWER_MODEL: str = "claude-sonnet-5-5"
     REWRITE_MODEL: str = "claude-haiku-4-5"
     SELECT_MODEL: str = "claude-sonnet-5-5"
+    # The two Hugging Face models are fixed when the image is built (download_models.py; env/.env is
+    # not part of the build), and EMBED_DIM in db/models.py matches bge-m3. Changing them means
+    # editing these defaults with a matching revision, rebuilding, and re-ingesting.
     EMBED_MODEL: str = "BAAI/bge-m3"
     EMBED_MODEL_REVISION: str = "5617a9f61b028005a4858fdac845db406aefb181"  # pinned commit
     RERANK_MODEL: str = "BAAI/bge-reranker-v2-m3"
@@ -65,7 +68,9 @@ class Settings(BaseSettings):
 
     # Health checks
     MIN_MEMORY_GB: float = 7.5  # "8 GB" Docker shows as about 7.7 inside the VM
-    DB_CHECK_TIMEOUT_S: int = 3
+    # Seconds to wait for a database connection. Below the frontend's 5 s health poll, so checks do
+    # not pile up; also stops upload and chat requests from hanging while the database is down.
+    DB_CONNECT_TIMEOUT_S: int = 3
 
 
 settings = Settings()

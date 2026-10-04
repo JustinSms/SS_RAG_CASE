@@ -1,4 +1,4 @@
-// Same limit as MAX_UPLOAD_MB in env/config.py and client_max_body_size in nginx.conf.
+// Same limit as MAX_UPLOAD_MB in env/config.py (nginx.conf allows it plus the multipart wrapping).
 export const MAX_UPLOAD_MB = 10
 
 const BYTES_PER_MB = 1024 * 1024

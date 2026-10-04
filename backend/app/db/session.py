@@ -4,7 +4,9 @@ from sqlalchemy.orm import sessionmaker
 from app.db.models import Base
 from env.config import settings
 
-engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
+engine = create_engine(
+    settings.DATABASE_URL, pool_pre_ping=True, connect_args={"connect_timeout": settings.DB_CONNECT_TIMEOUT_S}
+)
 SessionLocal = sessionmaker(engine)
 
 

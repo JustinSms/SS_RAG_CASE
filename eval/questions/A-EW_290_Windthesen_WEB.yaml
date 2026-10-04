@@ -1,0 +1,189 @@
+# A-EW_290_Windthesen_WEB.pdf: 24 questions (20 answerable, 4 unanswerable). Evidence page = page number in the PDF file (first page = 1).
+
+- id: windthesen-01
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Wie viel Gigawatt Windenergie an Land sollen bis 2030 in Deutschland installiert sein?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Vorwort > Ergebnisse auf einen Blick:"}
+  # evidence: p. 3, "2030-Ziel von 115 Gigawatt"
+
+- id: windthesen-02
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Innerhalb welcher Zeit sollen neue Windräder künftig realisiert werden können?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > Einleitung > Rückstau auflösen, Zubau-Dynamik auslösen und auf hohem Niveau halten"}
+  # evidence: p. 6, "Windräder in Zukunft innerhalb von maximal drei bis vier Jahren zu realisieren"
+
+- id: windthesen-03
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Worin unterscheidet sich ein Auktionssystem von einem Festpreissystem bei der Vergütung erneuerbarer Energien?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > Einleitung > Auktionen in Deutschland"}
+  # evidence: p. 7, "dass bei einer Auktion der Regulator die Menge festlegt, während der Markt den Preis bestimmt"
+
+- id: windthesen-04
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Wie viel Windleistung ist im Marktstammdatenregister als genehmigt eingetragen, und wie viel davon wurde schon vor 2022 genehmigt?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > A. 2024: Den Rückstau auflösen"}
+  # evidence: p. 9, "Gesamtleistung von 9,7 Gigawatt wurden etwa fünf Gigawatt bereits vor dem Jahr 2022 genehmigt"
+
+- id: windthesen-05
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Welche Größen soll die vorgeschlagene Indexierung der Zuschlagswerte berücksichtigen?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > A. 2024: Den Rückstau auflösen > Maßnahmen"}
+  # evidence: p. 9, "Die Indexierung berücksichtigt den Index der Erzeugerpreise gewerblicher Produkte"
+
+- id: windthesen-06
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Warum bringen Projektierer weit entwickelte Windprojekte derzeit oft nicht in die Ausschreibungen?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > A. 2024: Den Rückstau auflösen > 2. Befristete Aussetzung von Pönalen"}
+  # evidence: p. 10, "weil sie fürchten müssen, die im EEG geforderten Realisierungsfristen nicht einhalten zu können"
+
+- id: windthesen-07
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Auf welchen Wert soll der Zahlungsanspruch sinken, wenn ein Projekt die 30-Monats-Frist um ein weiteres Jahr überschreitet?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > A. 2024: Den Rückstau auflösen > 2. Befristete Aussetzung von Pönalen > Maßnahme"}
+  # evidence: p. 11, "nach einem weiteren Jahr Verzögerung schrittweise bis auf einen Wert von 95 Prozent des ursprünglichen Zuschlagwerts"
+
+- id: windthesen-08
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Warum führen hohe Pachten für Windflächen zu einer Umverteilung, und von wem zu wem?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > A. 2024: Den Rückstau auflösen > 3. Begrenzung der Pachthöhe von Windflächen"}
+  # evidence: p. 11, "eine Umverteilung von Stromkund:innen zu Landbesitzer:innen"
+
+- id: windthesen-09
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Wann kann beim erlaubten Fertigbauen außerhalb der Bauzeiten auf eine ökologische Baubegleitung verzichtet werden?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > A. 2024: Den Rückstau auflösen > 3. Begrenzung der Pachthöhe von Windflächen > Maßnahme"}
+  # evidence: p. 12, "Baufeldfreimachung außerhalb von Verbotszeiträumen durchgeführt wird und während der Bauphase keine weiteren Beeinträchtigungen zu befürchten sind"
+
+- id: windthesen-10
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Welche Bearbeitungsfrist wird für die Genehmigung von Schwertransporten für Windanlagen vorgeschlagen?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > A. 2024: Den Rückstau auflösen > 3. Begrenzung der Pachthöhe von Windflächen > Maßnahme"}
+  # evidence: p. 13, "Verbindlich verkürzte Bearbeitungsfristen (im Regelfall drei Wochen)"
+
+- id: windthesen-11
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Wie lange dauern Genehmigungsverfahren für Windenergieanlagen nach dem Bundesimmissionsschutzgesetz derzeit im Schnitt?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > B.  Bis 2026: Hochlauf des Zubaus > 6. Länderöffnungsklausel für Repowering-Projekte abschaffen > Maßnahme"}
+  # evidence: p. 15, "dauern aktuell durchschnittlich etwa zwei Jahre, und damit doppelt so lang wie vor zehn Jahren"
+
+- id: windthesen-12
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Für welche Bereiche könnten Fachgutachter der Antragsteller die Nachweise statt der Genehmigungsbehörde erbringen?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > B.  Bis 2026: Hochlauf des Zubaus > 6. Länderöffnungsklausel für Repowering-Projekte abschaffen > Maßnahme"}
+  # evidence: p. 15, "zu den Bereichen Geräuschemissionen, Schattenwurf oder Naturschutz durch qualifizierte Gutachter:innen"
+
+- id: windthesen-13
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Welche ungewöhnlichen Standorte kämen für Windräder infrage, wenn die Zweckbindung von Gewerbe- und Sonderflächen gelockert würde?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > B.  Bis 2026: Hochlauf des Zubaus > 8. Nutzung unkonventioneller Flächen für Windenergieanlagen"}
+  # evidence: p. 16, "Kläranlagen, Deponien und andere Abfallentsorgungsbetriebe oder Hafenanlagen"
+
+- id: windthesen-14
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Welche Prüfungen entfallen nach der EU-Notfallverordnung für einzelne Windprojekte, wenn schon eine Strategische Umweltprüfung gemacht wurde?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > B.  Bis 2026: Hochlauf des Zubaus > 8. Nutzung unkonventioneller Flächen für Windenergieanlagen > Maßnahme"}
+  # evidence: p. 17, "entfällt auf Ebene der Einzelprojekte die Pflicht zur Durchführung einer Umweltverträglichkeitsprüfung (UVP) und der artenschutzrechtlichen Prüfung"
+
+- id: windthesen-15
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "In der Nähe von wie vielen Denkmälern sollen Windanlagen in Bayern künftig noch eine denkmalschutzrechtliche Erlaubnis brauchen?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > B.  Bis 2026: Hochlauf des Zubaus > 8. Nutzung unkonventioneller Flächen für Windenergieanlagen > Maßnahme"}
+  # evidence: p. 18, "nur noch in der Nähe von etwa 100 „besonders landschaftsprägenden Denkmälern“ erlaubnispflichtig sein"
+
+- id: windthesen-16
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Wie viel Prozent der Landesfläche sind in Deutschland bisher für Windenergie ausgewiesen?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > C. Ab 2026: Zubauraten auf hohem Niveau stabilisieren"}
+  # evidence: p. 20, "Bislang wurden bundesweit nur etwa 0,8 Prozent der Landesfläche für die Windenergie ausgewiesen"
+
+- id: windthesen-17
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Was soll gelten, wenn eine Planungsregion bis Ende 2025 nicht genug Windflächen ausgewiesen hat?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > C. Ab 2026: Zubauraten auf hohem Niveau stabilisieren > Maßnahme"}
+  # evidence: p. 20, "gilt dann unmittelbar die Außenbereichsprivilegierung der Windenergie"
+
+- id: windthesen-18
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Nach welchen Merkmalen könnten Windanlagen zu Variantenclustern zusammengefasst werden?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > C. Ab 2026: Zubauraten auf hohem Niveau stabilisieren > 13. Genehmigungen von Typ- Variantenclustern > Maßnahme"}
+  # evidence: p. 22, "Schallkennwerte, Rotordurchmesser oder Abstand der Rotorspitze vom Boden"
+
+- id: windthesen-19
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Um wie viel ließe sich die Realisierungszeit verkürzen, wenn mit dem Bau schon während des Genehmigungsverfahrens begonnen wird?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > C. Ab 2026: Zubauraten auf hohem Niveau stabilisieren > 13. Genehmigungen von Typ- Variantenclustern > Maßnahme"}
+  # evidence: p. 24, "die Realisierungszeit um bis zu eineinhalb Jahren verkürzt werden können"
+
+- id: windthesen-20
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Welche wichtigen Handlungsfelder lässt das Impulspapier bewusst außen vor?"
+  answerable: true
+  gold:
+    - {document: A-EW_290_Windthesen_WEB.pdf, heading: "Inhalt > Fazit"}
+  # evidence: p. 26, "die aber in diesem Impulspapier bewusst ausgeklammert worden sind"
+
+- id: windthesen-21
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Wie viel Gigawatt Windenergie auf See sollen in Deutschland bis 2030 installiert sein?"
+  answerable: false
+  gold: []
+  # why not answerable: Das Papier behandelt nur Windenergie an Land (115 GW bis 2030) und erwähnt Windflächen auf See nur als Vorbild für die Voruntersuchung von Flächen, nennt aber kein Offshore-Ziel.
+
+- id: windthesen-22
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Wie hoch soll die Obergrenze für Pachtzahlungen auf Windflächen genau sein?"
+  answerable: false
+  gold: []
+  # why not answerable: Maßnahme 3 fordert eine Selbsterklärung zu einer "noch festzulegenden Obergrenze", die erst über ein Vorhaben ermittelt werden soll; ein Betrag wird nicht genannt.
+
+- id: windthesen-23
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Wie viel Cent pro Kilowattstunde sollen Kommunen über den Sprinterbonus zusätzlich erhalten?"
+  answerable: false
+  gold: []
+  # why not answerable: Genannt werden nur die bestehenden 0,2 Cent pro kWh nach § 6 Abs. 2 EEG; die Höhe des zusätzlichen Sprinterbonus bleibt offen.
+
+- id: windthesen-24
+  document: A-EW_290_Windthesen_WEB.pdf
+  question: "Wie viele Windenergieanlagen wurden 2022 in Bayern neu in Betrieb genommen?"
+  answerable: false
+  gold: []
+  # why not answerable: Das Papier erwähnt Bayern nur bei der 10-H-Regelung und der Denkmalschutz-Novelle und nennt bundesweit gut zwei Gigawatt Zubau, aber keine Zahlen für Bayern.

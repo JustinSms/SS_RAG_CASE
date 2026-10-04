@@ -1,0 +1,189 @@
+# NIST.CSWP.29.pdf: 24 questions (20 answerable, 4 unanswerable). Evidence page = page number in the PDF file (first page = 1).
+
+- id: nist-01
+  document: NIST.CSWP.29.pdf
+  question: "What new emphases does CSF 2.0 add compared with earlier versions of the framework?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > Preface"}
+  # evidence: p. 5, "CSF 2.0 contains new features that highlight the importance of governance and supply chains"
+
+- id: nist-02
+  document: NIST.CSWP.29.pdf
+  question: "Besides cybersecurity, which other kinds of enterprise risk should the CSF ideally be used alongside?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > Preface"}
+  # evidence: p. 5, "including those that are financial, privacy, supply chain, reputational, technological, or physical in nature"
+
+- id: nist-03
+  document: NIST.CSWP.29.pdf
+  question: "What are the three main components of CSF 2.0?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > 1. Cybersecurity Framework (CSF) Overview"}
+  # evidence: p. 6, "It includes the following components: CSF Core, the nucleus of the CSF"
+
+- id: nist-04
+  document: NIST.CSWP.29.pdf
+  question: "Can organizations outside the United States use the CSF?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > 1. Cybersecurity Framework (CSF) Overview"}
+  # evidence: p. 7, "leveraged successfully by many governments and other organizations both inside and outside of the United States"
+
+- id: nist-05
+  document: NIST.CSWP.29.pdf
+  question: "Why is GOVERN placed in the middle of the CSF Functions wheel?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > 2. Introduction to the CSF Core"}
+  # evidence: p. 9, "GOVERN is in the center of the wheel because it informs how an organization will implement the other five Functions"
+
+- id: nist-06
+  document: NIST.CSWP.29.pdf
+  question: "Which CSF Functions should run all the time, and which ones are mainly for when an incident happens?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > 2. Introduction to the CSF Core"}
+  # evidence: p. 10, "Actions that support GOVERN, IDENTIFY, PROTECT, and DETECT should all happen continuously"
+
+- id: nist-07
+  document: NIST.CSWP.29.pdf
+  question: "Does the CSF Core also cover operational technology and AI systems?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > 2. Introduction to the CSF Core"}
+  # evidence: p. 10, "They also apply to all types of technology environments, including cloud, mobile, and artificial intelligence systems"
+
+- id: nist-08
+  document: NIST.CSWP.29.pdf
+  question: "What steps does NIST suggest for building and using an Organizational Profile?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > 3.1. CSF Profiles"}
+  # evidence: p. 12, "Scope the Organizational Profile"
+
+- id: nist-09
+  document: NIST.CSWP.29.pdf
+  question: "How can a Target Profile help when working with suppliers and partners?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > 3.1. CSF Profiles"}
+  # evidence: p. 12, "a Target Profile can help express the organization’s cybersecurity risk management requirements and expectations to suppliers"
+
+- id: nist-10
+  document: NIST.CSWP.29.pdf
+  question: "When should an organization consider moving up to a higher Tier?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > 3.2. CSF Tiers"}
+  # evidence: p. 13, "Progression to higher Tiers is encouraged when risks or mandates are greater"
+
+- id: nist-11
+  document: NIST.CSWP.29.pdf
+  question: "Where can I send suggestions for new Informative References for CSF 2.0?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > 4. Introduction to Online Resources That Supplement the CSF"}
+  # evidence: p. 14, "olir@nist.gov"
+
+- id: nist-12
+  document: NIST.CSWP.29.pdf
+  question: "What options does an organization have for handling negative and positive risks?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > 5. Improving Cybersecurity Risk Communication and Integration"}
+  # evidence: p. 15, "mitigating, transferring, avoiding, or accepting negative risks and realizing, sharing, enhancing, or accepting positive risks"
+
+- id: nist-13
+  document: NIST.CSWP.29.pdf
+  question: "What kind of information do practitioners give managers and executives so they understand the cybersecurity posture?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > 5.1. Improving Risk Management Communication"}
+  # evidence: p. 16, "key performance indicators, key risk indicators"
+
+- id: nist-14
+  document: NIST.CSWP.29.pdf
+  question: "Which NIST publication gives in-depth guidance on cybersecurity supply chain risk management?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > 5.2. Improving Integration with Other Risk Management Programs"}
+  # evidence: p. 19, "SP 800-161r1 (Revision 1)"
+
+- id: nist-15
+  document: NIST.CSWP.29.pdf
+  question: "What kinds of problems can people experience from privacy events, according to NIST?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > 5.2. Improving Integration with Other Risk Management Programs"}
+  # evidence: p. 18, "ranging from dignity-type effects (e.g., embarrassment or stigma) to more tangible harms"
+
+- id: nist-16
+  document: NIST.CSWP.29.pdf
+  question: "Which NIST framework was developed to deal with the risks of artificial intelligence?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > 5.2. Improving Integration with Other Risk Management Programs"}
+  # evidence: p. 19, "NIST Artificial Intelligence Risk Management Framework (AI RMF) was developed to help address these risks"
+
+- id: nist-17
+  document: NIST.CSWP.29.pdf
+  question: "Why are there gaps in the numbering of the CSF 2.0 Subcategories?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > Appendix A. CSF Core"}
+  # evidence: p. 20, "gaps in numbering indicate CSF 1.1 Subcategories that were relocated in CSF 2.0"
+
+- id: nist-18
+  document: NIST.CSWP.29.pdf
+  question: "Which CSF 2.0 Subcategory covers creating and testing data backups?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > Appendix A. CSF Core"}
+  # evidence: p. 25, "Backups of data are created, protected, maintained, and tested"
+
+- id: nist-19
+  document: NIST.CSWP.29.pdf
+  question: "What is the identifier of the Incident Mitigation category in the CSF Core?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > Appendix A. CSF Core"}
+  # evidence: p. 20, "Incident Mitigation (RS.MI)"
+
+- id: nist-20
+  document: NIST.CSWP.29.pdf
+  question: "How does an organization at Tier 4 deal with cybersecurity risks from its suppliers?"
+  answerable: true
+  gold:
+    - {document: NIST.CSWP.29.pdf, heading: "<mark>The NIST Cybersecurity Framework (CSF) 2.0</mark> > Appendix B. CSF Tiers"}
+  # evidence: p. 30, "uses real-time or near real-time information to understand and consistently act upon the cybersecurity risks associated with its suppliers"
+
+- id: nist-21
+  document: NIST.CSWP.29.pdf
+  question: "When will NIST release version 3.0 of the Cybersecurity Framework?"
+  answerable: false
+  gold: []
+  # why not answerable: The document describes CSF 2.0 and says it is updated infrequently, but gives no date or plan for a next version.
+
+- id: nist-22
+  document: NIST.CSWP.29.pdf
+  question: "How much does it cost to get an organization officially certified against the NIST CSF?"
+  answerable: false
+  gold: []
+  # why not answerable: The CSF is described as voluntary guidance with online resources; it mentions no certification scheme or costs.
+
+- id: nist-23
+  document: NIST.CSWP.29.pdf
+  question: "By what deadline must U.S. federal agencies adopt CSF 2.0?"
+  answerable: false
+  gold: []
+  # why not answerable: The overview only says the CSF may be adopted voluntarily and through governmental policies and mandates; no deadline is given.
+
+- id: nist-24
+  document: NIST.CSWP.29.pdf
+  question: "Which CSF 2.0 Subcategories map to ISO/IEC 27001 controls?"
+  answerable: false
+  gold: []
+  # why not answerable: Informative References are described as online mappings to standards, with SP 800-53 as the only named example; ISO/IEC 27001 is not mentioned.

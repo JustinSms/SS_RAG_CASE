@@ -56,9 +56,10 @@ export async function listDocuments(): Promise<Document[]> {
   return response.json()
 }
 
-export async function uploadDocuments(files: File[], overwrite = false): Promise<void> {
+// One file per request, so the nginx body limit applies to each file, not to the whole drop.
+export async function uploadDocument(file: File, overwrite = false): Promise<void> {
   const body = new FormData()
-  for (const file of files) body.append("files", file)
+  body.append("files", file)
   const response = await fetch(`/api/documents?overwrite=${overwrite}`, { method: "POST", body })
   if (response.status === 409) throw new DuplicateError(await errorMessage(response))
   if (!response.ok) throw new Error(await errorMessage(response))

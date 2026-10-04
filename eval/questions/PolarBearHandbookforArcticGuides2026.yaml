@@ -1,0 +1,189 @@
+# PolarBearHandbookforArcticGuides2026.pdf: 24 questions (20 answerable, 4 unanswerable). Evidence page = page number in the PDF file (first page = 1).
+
+- id: polarbear-01
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "What color is a polar bear's skin under its fur?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Executive Summary"}
+  # evidence: p. 4, "the skin beneath that fur is actually black"
+
+- id: polarbear-02
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "What is the longest continuous swim ever recorded for a polar bear?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Polar Bear Facts and Figures > Walkers and Swimmers"}
+  # evidence: p. 5, "swimming in the southern Beaufort Sea north of Alaska for 232 continuous hours over a distance of 687 km"
+
+- id: polarbear-03
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "How many teeth does a polar bear have?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Evolutionary Adaptations"}
+  # evidence: p. 6, "contain 42 razor-sharp teeth"
+
+- id: polarbear-04
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "How close does a stalking polar bear get to a seal before it pounces?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > What—and How—Do Polar Bears Eat? > Hunting > Polar bears employ two principal methods of hunting:"}
+  # evidence: p. 8, "Once it is within about 6m (20 ft) of the seal, the bear uses its explosive speed to pounce"
+
+- id: polarbear-05
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "Why are bearded seals less reliable prey for polar bears than ringed seals?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > What—and How—Do Polar Bears Eat? > Other prey"}
+  # evidence: p. 9, "they generally rely on natural openings in the ice rather than carving their own breathing holes"
+
+- id: polarbear-06
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "Do polar bears hibernate in winter?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > A Polar Bear Life: Season by Season > Winter"}
+  # evidence: p. 12, "Polar bears do not hibernate in winter"
+
+- id: polarbear-07
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "How fast is Arctic summer sea ice extent shrinking per decade?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Sea ice > What’s happening with sea ice? > Declining extent"}
+  # evidence: p. 15, "by about 12 percent per decade"
+
+- id: polarbear-08
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "How much of the Arctic ice pack was old, thick ice in the 1980s compared with the 2010s?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Sea ice > What’s happening with sea ice? > Declining thickness"}
+  # evidence: p. 16, "older, thicker ice constituted roughly 30 percent of the Arctic ice pack; by the 2010s that had plummeted to five percent"
+
+- id: polarbear-09
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "What is the Last Ice Area, and why does it have that name?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Sea ice > Convergent Sea Ice Ecoregion"}
+  # evidence: p. 19, "also known as the Last Ice Area, because models suggest that this is the region where year-round sea ice is likely to persist the longest"
+
+- id: polarbear-10
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "What share of adult female polar bears can mate at any given time?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Mating > Finding Each Other"}
+  # evidence: p. 22, "only about a third of adult females are available for mating at any given time"
+
+- id: polarbear-11
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "What is delayed implantation in polar bears?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Mating > Courtship"}
+  # evidence: p. 23, "the zygote enters a state of dormancy known as delayed implantation"
+
+- id: polarbear-12
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "What share of polar bear cubs survive their first year?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Mating > The Timing Must Be Just Right"}
+  # evidence: p. 25, "On average, only 50 percent survive beyond one year of age"
+
+- id: polarbear-13
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "How many polar bear attacks on people were documented between 1879 and 2014?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Living with Polar Bears"}
+  # evidence: p. 26, "just 73 documented attacks between 1879 and 2014, resulting in 20 human fatalities"
+
+- id: polarbear-14
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "Under the International Agreement on the Conservation of Polar Bears, who is still allowed to hunt them?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Threats to Polar Bears > Overhunting > The history of legal hunting"}
+  # evidence: p. 31, "allowed legal, sustainable harvest to continue on a limited basis for Indigenous peoples"
+
+- id: polarbear-15
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "Why does almost all collar tracking data on polar bears come from adult females?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Studying Polar Bears > Satellite Collars and Other Tools"}
+  # evidence: p. 32, "the necks of adult males are so large that collars slide off them and over their heads"
+
+- id: polarbear-16
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "How many polar bear subpopulations are recognized today, and why did the number change?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Polar bear populations"}
+  # evidence: p. 35, "Until recently, scientists classified the bears into 19 subpopulations"
+
+- id: polarbear-17
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "How much faster is the Svalbard region warming than the rest of the world?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Polar bear populations > Barents Sea (including Svalbard) > Challenges:"}
+  # evidence: p. 38, "This region is warming up to eight times faster than the rest of the world"
+
+- id: polarbear-18
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "What is the critical fasting threshold for polar bears, and what happens beyond it?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Polar bear populations > Western Hudson Bay (including Churchill) > Challenges:"}
+  # evidence: p. 39, "180 days is a critical fasting threshold for polar bears"
+
+- id: polarbear-19
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "How well do FLIR surveys find polar bear dens before industrial activity starts?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Polar bear populations > Southern Beaufort Sea > Challenges:"}
+  # evidence: p. 40, "these surveys failed to locate more than half the dens in a given area"
+
+- id: polarbear-20
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "By how much did global emissions fall when the world shut down during the pandemic?"
+  answerable: true
+  gold:
+    - {document: PolarBearHandbookforArcticGuides2026.pdf, heading: "Polar Bear Handbook for Arctic Guides > Tools for talking about polar bears > What can your guests do? > Changes in individual behaviour won’t achieve the goal"}
+  # evidence: p. 41, "total emissions dropped by only about five percent"
+
+- id: polarbear-21
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "How long do polar bears typically live in the wild?"
+  answerable: false
+  gold: []
+  # why not answerable: The handbook gives ages for weaning (2-3 years), adulthood (about 5) and male competition (into the teens), but no lifespan.
+
+- id: polarbear-22
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "How fast can a polar bear run on land?"
+  answerable: false
+  gold: []
+  # why not answerable: It mentions the bear's explosive speed when pouncing and long travel distances, but gives no running speed.
+
+- id: polarbear-23
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "How many tourists come to Churchill each year to see polar bears?"
+  answerable: false
+  gold: []
+  # why not answerable: It says Churchill thrives on polar bear tourism and several hundred bears pass the town each fall, but gives no visitor numbers.
+
+- id: polarbear-24
+  document: PolarBearHandbookforArcticGuides2026.pdf
+  question: "When is the next meeting of the IUCN Polar Bear Specialist Group?"
+  answerable: false
+  gold: []
+  # why not answerable: Only the June 2024 meeting, where the Southeast Greenland subpopulation was recognized, is mentioned; no future meeting date.

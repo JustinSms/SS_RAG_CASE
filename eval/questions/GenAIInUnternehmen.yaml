@@ -1,0 +1,189 @@
+# GenAIInUnternehmen.pdf: 24 questions (20 answerable, 4 unanswerable). Evidence page = page number in the PDF file (first page = 1).
+
+- id: genai-01
+  document: GenAIInUnternehmen.pdf
+  question: "Welcher Anteil der Geschäftsprozesse soll laut ersten Studien in den nächsten drei Jahren zumindest teilautonom von KI-Agenten gesteuert werden?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 1. Einleitung > Von der Pilotphase in den Dauerbetrieb"}
+  # evidence: p. 5, "etwa ein Viertel aller Geschäftsprozesse zumindest teilautonom durch KI-Agenten gesteuert wird"
+
+- id: genai-02
+  document: GenAIInUnternehmen.pdf
+  question: "Wie viele Stellenanzeigen mit Bezug zu generativer KI gab es 2024 in Deutschland?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 1. Einleitung > Implikationen für die Arbeitswelt"}
+  # evidence: p. 5, "2024 wurden insgesamt etwa 18.000 Stellenanzeigen ausgeschrieben"
+
+- id: genai-03
+  document: GenAIInUnternehmen.pdf
+  question: "Welcher Anteil agentischer KI-Projekte könnte bis Ende 2027 eingestellt werden, und warum?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 1. Einleitung > Eine Stufe mehr: KI-Agenten"}
+  # evidence: p. 7, "über 40 Prozent der agentischen KI-Projekte bis Ende 2027 eingestellt werden"
+
+- id: genai-04
+  document: GenAIInUnternehmen.pdf
+  question: "Was bedeutet es, dass KI-Agenten eine zielgebundene Autonomie haben?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 1. Einleitung > Eine Stufe mehr: KI-Agenten > Tabelle 1: Vergleich Generative KI und KI-Agenten"}
+  # evidence: p. 8, "Mensch legt das Ziel fest, Agent entscheidet, wie er dieses Ziel erreicht"
+
+- id: genai-05
+  document: GenAIInUnternehmen.pdf
+  question: "Warum reichen klassische Software-Tests bei agentischen KI-Systemen nicht mehr aus?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten"}
+  # evidence: p. 10, "Da agentische Systeme nicht-deterministisch agieren"
+
+- id: genai-06
+  document: GenAIInUnternehmen.pdf
+  question: "Welche Routineprozesse können KI-Agenten in Medizin und Pharmazie übernehmen?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > 2.1 Anwendungsbereiche"}
+  # evidence: p. 10, "Remote-Patient-Monitoring, klinische Studienorganisation, Drug-Discovery-Screening"
+
+- id: genai-07
+  document: GenAIInUnternehmen.pdf
+  question: "Mit welchen Techniken erzeugt generative KI in Forschung und Entwicklung synthetische Daten?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > KI in Forschung und Entwicklung (F&E)"}
+  # evidence: p. 12, "Generative Adversarial Networks (GANs) und Variational Autoencoders (VAEs)"
+
+- id: genai-08
+  document: GenAIInUnternehmen.pdf
+  question: "Was ist mit dem Closed-Loop-Verfahren gemeint, wenn KI-Agenten Experimente steuern?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > KI in Forschung und Entwicklung (F&E) > GenAI > KI-Agenten"}
+  # evidence: p. 12, "Anpassung der Parameter für den nächsten Durchlauf (Closed-Loop-Verfahren)"
+
+- id: genai-09
+  document: GenAIInUnternehmen.pdf
+  question: "Welche Schritte im Einkauf können KI-Agenten von Anfang bis Ende automatisieren?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > KI im Beschaffungswesen > GenAI > KI-Agenten"}
+  # evidence: p. 13, "SourcingEvents, Vertragsprüfungen, Bestellprozesse und die Lieferantenkommunikation"
+
+- id: genai-10
+  document: GenAIInUnternehmen.pdf
+  question: "Was prüfen Beschäftigte im Kundenservice, wenn KI-Agenten die Anfragen selbst bearbeiten?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Kundenservice > GenAI > KI-Agenten"}
+  # evidence: p. 15, "ob der Agent die richtigen ökonomischen Entscheidungen getroffen hat"
+
+- id: genai-11
+  document: GenAIInUnternehmen.pdf
+  question: "Auf wie viele Mitarbeitende in der Instandhaltung soll das TALK-System bei Infineon ausgeweitet werden?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > TALK – ein LLM-Projekt zur Effizienzsteigerung in der Instandhaltung (Infineon)"}
+  # evidence: p. 18, "für die gesamte Instandhaltung mit über 2.000 Mitarbeitenden skaliert"
+
+- id: genai-12
+  document: GenAIInUnternehmen.pdf
+  question: "Um wie viel Prozent steigt die Produktivität im Kundensupport und in der Softwareentwicklung laut Studien?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.1 Veränderte Interaktionsformen > Kommunikation"}
+  # evidence: p. 22, "Produktivitätssteigerungen von bis zu 26 Prozent in den Bereichen Kundensupport und Softwareentwicklung"
+
+- id: genai-13
+  document: GenAIInUnternehmen.pdf
+  question: "In welchen Phasen baut Schaeffler die Beziehung zwischen Beschäftigten und KI auf?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > human+AI: working alongsAIde (Schaeffler AG)"}
+  # evidence: p. 24, "In fünf Phasen wird die Mensch-KI-Beziehung systematisch aufgebaut"
+
+- id: genai-14
+  document: GenAIInUnternehmen.pdf
+  question: "Was ist mit kaskadierenden Fehlern bei KI-Agenten gemeint?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.2 Unsicherheiten beim Einsatz"}
+  # evidence: p. 26, "Steht zu Beginn gleich ein Fehler (eine falsche Annahme/falsch generierte Aktion), zieht sich dieser durch die gesamte Kette und verstärkt sich"
+
+- id: genai-15
+  document: GenAIInUnternehmen.pdf
+  question: "Nach welcher Vorschrift muss der Betriebsrat mitbestimmen, wenn Systeme die Leistung von Beschäftigten überwachen sollen?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.2 Unsicherheiten beim Einsatz > Datenschutz"}
+  # evidence: p. 27, "mitbestimmungspflichtig (§ 87 Abs. 1 Nr. 6 BetrVG)"
+
+- id: genai-16
+  document: GenAIInUnternehmen.pdf
+  question: "Welche Berufe sind derzeit kaum von Jobverlust durch generative oder agentische KI betroffen, und warum?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.3 Veränderungen der Arbeitsstrukturen"}
+  # evidence: p. 29, "Umgebungen mit hoher physischer Komplexität (Berufe im Handwerk und der Pflege) sind derzeit noch wenig von Jobverlust"
+
+- id: genai-17
+  document: GenAIInUnternehmen.pdf
+  question: "Anhand welcher Kriterien lässt sich die Qualität von KI-Agenten bewerten?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.4 Anforderungen an Ergebnisse und Qualität"}
+  # evidence: p. 29, "Erfolgsrate, Tool-Use Accuracy"
+
+- id: genai-18
+  document: GenAIInUnternehmen.pdf
+  question: "Welche Kennzahlen sollten Unternehmen neben der Zeitersparnis heranziehen, um den Mehrwert von KI zu bewerten?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 4. Gestaltungsoptionen und Ausblick > Generative KI unterstützt die Beschäftigten als sogenannter „Co-Pilot“, während KI-Agenten innerhalb ihrer Zielerreichung autonom agieren."}
+  # evidence: p. 33, "Stabilität der Prozesse, Zufriedenheit der Mitarbeitenden mit einem System, Vertrauen in KI-Systeme, Innovationsgrad der Ergebnisse"
+
+- id: genai-19
+  document: GenAIInUnternehmen.pdf
+  question: "Mit welchen technischen Mitteln soll verhindert werden, dass KI-Agenten ihre Kompetenzen überschreiten?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 4. Gestaltungsoptionen und Ausblick > Die Folge der Effizienzgewinne durch generative KI und KI-Agenten sollte nicht eine Arbeitsverdichtung sein."}
+  # evidence: p. 34, "Durch technische Schutzschalter (Circuit Breakers"
+
+- id: genai-20
+  document: GenAIInUnternehmen.pdf
+  question: "Warum bleibt der Mensch in der Zusammenarbeit mit KI-Agenten der Letztentscheider?"
+  answerable: true
+  gold:
+    - {document: GenAIInUnternehmen.pdf, heading: "Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 4. Gestaltungsoptionen und Ausblick > Vision für die Zukunft aufzeigen > Schlussendlich stellt sich die Frage, wie sich Arbeit, Tätigkeiten, Zusammenarbeit und Organisationsstrukturen in Zukunft durch den flächendeckenden Einsatz von generati-"}
+  # evidence: p. 36, "Da ein KI-Agent weder ethische noch rechtliche Verantwortung tragen kann"
+
+- id: genai-21
+  document: GenAIInUnternehmen.pdf
+  question: "Wie viel hat das TALK-Projekt von Infineon und Fraunhofer Austria gekostet?"
+  answerable: false
+  gold: []
+  # why not answerable: Der Use Case nennt Partner, Laufzeit (zehn Monate ab Mitte 2024) und die Skalierung auf über 2.000 Mitarbeitende, aber keine Kosten oder Budgets.
+
+- id: genai-22
+  document: GenAIInUnternehmen.pdf
+  question: "Wie viele Beschäftigte bei Schaeffler haben schon alle fünf Phasen von „human+AI: working alongsAIde“ durchlaufen?"
+  answerable: false
+  gold: []
+  # why not answerable: Der Use Case sagt nur, dass der Ansatz in der Umsetzungsphase ist und ein erstes AI-Readiness-Assessment gemacht wurde; Teilnehmerzahlen fehlen.
+
+- id: genai-23
+  document: GenAIInUnternehmen.pdf
+  question: "Ab welchem Datum gelten die Pflichten des EU AI Act für Hochrisiko-KI-Systeme?"
+  answerable: false
+  gold: []
+  # why not answerable: Das Whitepaper nennt den EU AI Act nur als Rahmen für Leitlinien und Haftung und nennt keine Fristen oder Daten.
+
+- id: genai-24
+  document: GenAIInUnternehmen.pdf
+  question: "Welche Halluzinationsrate gilt im Unternehmenseinsatz als akzeptabel?"
+  answerable: false
+  gold: []
+  # why not answerable: Tabelle 3 nennt die Halluzinationsrate als Kernkriterium für generative KI, gibt aber keinen Grenzwert an.

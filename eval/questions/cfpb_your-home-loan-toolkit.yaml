@@ -1,0 +1,189 @@
+# cfpb_your-home-loan-toolkit.pdf: 24 questions (20 answerable, 4 unanswerable). Evidence page = page number in the PDF file (first page = 1).
+
+- id: cfpb-01
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "What is force-placed insurance, and how much more can it cost me?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Choosing the best mortgage for you > Be sure to budget for homeowner's insurance"}
+  # evidence: p. 4, "the cost to you could be twice as much as you would regularly pay for insurance"
+
+- id: cfpb-02
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "What share of my income before taxes should my total monthly home payment stay under?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Choosing the best mortgage for you > Step 2. Estimate the percentage of your income spent on your monthly home payment"}
+  # evidence: p. 6, "should be at or below 28% of your total monthly income before taxes"
+
+- id: cfpb-03
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "How much of my credit score depends on paying bills on time?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Choosing the best mortgage for you > 2 . Understand your credit"}
+  # evidence: p. 7, "About 35% of your credit scores is based on whether you pay your bills on time"
+
+- id: cfpb-04
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "How long can I shop around for a mortgage without my credit score taking much of a hit?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Choosing the best mortgage for you > <sup>RESEARCH STARTER</sup> > IN THE FUTURE"}
+  # evidence: p. 7, "generally between 14 days and 45 days—with little or no impact on your scores"
+
+- id: cfpb-05
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "How quickly can fixing errors on my credit report raise my score?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Choosing the best mortgage for you > <sup>RESEARCH STARTER</sup> > TIP"}
+  # evidence: p. 7, "Correcting errors on your credit report could raise your scores in 30 days or less"
+
+- id: cfpb-06
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "What is a balloon payment on a mortgage?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Choosing the best mortgage for you > <sup>RESEARCH STARTER</sup> > Check for risky loan features"}
+  # evidence: p. 8, "is a large payment you must make, usually at the end of your loan repayment period"
+
+- id: cfpb-07
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "Which loan program offers a 3.5% down payment?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Choosing the best mortgage for you > <sup>RESEARCH STARTER</sup> > YOUR CHOICE"}
+  # evidence: p. 9, "FHA, which offers a 3.5% down payment program"
+
+- id: cfpb-08
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "On a $100,000 loan, how much money is one point?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Choosing the best mortgage for you > <sup>RESEARCH STARTER</sup> > 5 . Understand the trade-off between points and interest rate"}
+  # evidence: p. 10, "talking about one percent of the loan, which equals $1,000"
+
+- id: cfpb-09
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "When can a lender start charging me an application or appraisal fee?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Choosing the best mortgage for you > <sup>THE TALK</sup> > Intent to proceed"}
+  # evidence: p. 13, "Lenders have to wait until you express your intent to proceed before they require you to pay an application fee, appraisal fee"
+
+- id: cfpb-10
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "For how long are mortgage rate locks usually available?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Choosing the best mortgage for you > <sup>THE TALK</sup> > Rate lock"}
+  # evidence: p. 14, "Rate locks are typically available for 30, 45, or 60 days, and sometimes longer"
+
+- id: cfpb-11
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "What can I do if I think I was discriminated against when applying for a mortgage?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Choosing the best mortgage for you > <sup>THE TALK</sup> > Handle problems"}
+  # evidence: p. 16, "The Fair Housing Act and Equal Credit Opportunity Act prohibit housing and credit discrimination"
+
+- id: cfpb-12
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "Who handles the closing in Western states, and where might an attorney be required?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Your closing > Closing agent"}
+  # evidence: p. 17, "particularly several states in the West, the person is known as an escrow agent"
+
+- id: cfpb-13
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "Do I have to buy Owner's Title Insurance, and what does it protect?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Your closing > <sup>RESEARCH STARTER</sup> > Title insurance"}
+  # evidence: p. 18, "Though it is not required, you might want to buy an Owner’s Title Insurance policy, which protects your financial investment in the home"
+
+- id: cfpb-14
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "What is the difference between a home inspector and a home appraiser?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Your closing > <sup>RESEARCH STARTER</sup> > Home inspector and home appraiser"}
+  # evidence: p. 19, "The appraiser is an independent professional whose job is to give the lender an estimate of the home’s market value"
+
+- id: cfpb-15
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "In which cases may a lender change the fees it quoted for its own services?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Your closing > <sup>RESEARCH STARTER</sup> > 2. Review your revised Loan Estimate"}
+  # evidence: p. 19, "a lender is allowed to change the fees it quotes you for its services if the facts on your application were wrong or changed"
+
+- id: cfpb-16
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "By how much can the charges for services I can shop for go up at closing?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Your closing > <sup>RESEARCH STARTER</sup> > 3. Understand and use your Closing Disclosure"}
+  # evidence: p. 20, "generally by no more than 10% of the costs listed on your final Loan Estimate"
+
+- id: cfpb-17
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "Why is the APR usually higher than the interest rate?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Your closing > <sup>RESEARCH STARTER</sup> > Finance Charge"}
+  # evidence: p. 25, "because the APR takes into consideration all the costs of your loan, over the full term of the loan"
+
+- id: cfpb-18
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "Who can evaluate me for a loan modification?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Owning your home > 1. Act fast if you get behind on your payments"}
+  # evidence: p. 26, "Only your mortgage servicer can evaluate you for a loan modification"
+
+- id: cfpb-19
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "How much flood damage happens in the United States in an average year?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Owning your home > 3. Determine if you need flood insurance"}
+  # evidence: p. 27, "Flooding causes more than $45 billion in damages in the United States in an average year"
+
+- id: cfpb-20
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "How long do I have to cancel a refinance or a HELOC?"
+  answerable: true
+  gold:
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Owning your home > 4. Understand Home Equity Lines of Credit (HELOCs) and refinancing"}
+  # evidence: p. 27, "you can only rescind a refinance or HELOC within three days of receiving a proper notice of the right to rescind"
+
+- id: cfpb-21
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "What is the maximum loan amount for an FHA loan in 2026?"
+  answerable: false
+  gold: []
+  # why not answerable: The toolkit names FHA only for its 3.5% down payment program and gives no loan limits.
+
+- id: cfpb-22
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "What is the current average interest rate on a 30-year fixed mortgage?"
+  answerable: false
+  gold: []
+  # why not answerable: The points example uses a 5.0% rate and says rates currently available could be different; no market average is given.
+
+- id: cfpb-23
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "What minimum credit score do I need to qualify for a VA loan?"
+  answerable: false
+  gold: []
+  # why not answerable: VA is mentioned only for its zero down payment option for qualifying veterans; no minimum credit score is stated.
+
+- id: cfpb-24
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "How long does foreclosure take after I stop making my mortgage payments?"
+  answerable: false
+  gold: []
+  # why not answerable: The toolkit says servicers must explain options to avoid foreclosure and the sample form mentions liability after foreclosure, but gives no timeline.
