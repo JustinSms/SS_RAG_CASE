@@ -1,0 +1,96 @@
+Start of document
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Inhalt
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Zusammenfassung
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 1. Einleitung
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 1. Einleitung > Rasante Verbreitung generativer KI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 1. Einleitung > Von der Pilotphase in den Dauerbetrieb
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 1. Einleitung > Implikationen für die Arbeitswelt
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 1. Einleitung > Eine Stufe mehr: KI-Agenten
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 1. Einleitung > Eine Stufe mehr: KI-Agenten > Abbildung 1: Arten von KI-Systemen
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 1. Einleitung > Eine Stufe mehr: KI-Agenten > Tabelle 1: Vergleich Generative KI und KI-Agenten
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > 2.1 Anwendungsbereiche
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > 2.1 Anwendungsbereiche > Abbildung 2: Beispielhafte Architektur von Multiagentensystemen mit ihrer digitalen und realen Umwelt
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > 2.2 Einsatz von generativer KI und KI-Agenten in Unternehmen
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > KI in Forschung und Entwicklung (F&E)
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > KI in Forschung und Entwicklung (F&E) > Veränderung der Tätigkeit
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > KI in Forschung und Entwicklung (F&E) > GenAI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > KI in Forschung und Entwicklung (F&E) > GenAI > Generative KI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > KI in Forschung und Entwicklung (F&E) > GenAI > KI-Agenten
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > KI im Beschaffungswesen
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > KI im Beschaffungswesen > Veränderung der Tätigkeit
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > KI im Beschaffungswesen > GenAI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > KI im Beschaffungswesen > GenAI > Generative KI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > KI im Beschaffungswesen > GenAI > KI-Agenten
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Produktion und Fertigung
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Produktion und Fertigung > Veränderung der Tätigkeit
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Produktion und Fertigung > GenAI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Produktion und Fertigung > GenAI > Generative KI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Produktion und Fertigung > GenAI > KI-Agenten
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Marketing und Vertrieb
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Marketing und Vertrieb > Veränderung der Tätigkeit
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Marketing und Vertrieb > GenAI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Marketing und Vertrieb > GenAI > Generative KI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Marketing und Vertrieb > GenAI > KI-Agenten
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Kundenservice
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Kundenservice > Veränderung der Tätigkeit
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Kundenservice > GenAI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Kundenservice > GenAI > Generative KI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Kundenservice > GenAI > KI-Agenten
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Verwaltung
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Verwaltung > Veränderung der Tätigkeit
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Verwaltung > GenAI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Verwaltung > GenAI > Generative KI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Verwaltung > GenAI > KI-Agenten
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Innovation und Geschäftsmodellentwicklung
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Innovation und Geschäftsmodellentwicklung > Veränderung der Tätigkeit
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Innovation und Geschäftsmodellentwicklung > GenAI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Innovation und Geschäftsmodellentwicklung > GenAI > Generative KI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Innovation und Geschäftsmodellentwicklung > GenAI > KI-Agenten
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Wissensmanagement
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Wissensmanagement > Veränderung der Tätigkeit
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Wissensmanagement > GenAI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Wissensmanagement > GenAI > Generative KI
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Wissensmanagement > GenAI > KI-Agenten
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > Wissensmanagement > GenAI > USE CASE
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 2.  Nutzungsmöglichkeiten von generativer KI und KI-Agenten > TALK – ein LLM-Projekt zur Effizienzsteigerung in der Instandhaltung (Infineon)
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u>
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.1 Veränderte Interaktionsformen
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.1 Veränderte Interaktionsformen > Abbildung 3: So funktionieren KI-Agenten
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.1 Veränderte Interaktionsformen > Kommunikation
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.1 Veränderte Interaktionsformen > Prompt Engineering versus Strategische Delegation & Auditierung
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.1 Veränderte Interaktionsformen > USE CASE
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > human+AI: working alongsAIde (Schaeffler AG)
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > human+AI: working alongsAIde (Schaeffler AG) > USE CASE
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > human+AI: working alongsAIde (Schaeffler AG) > Nicht die Technologie allein macht den Unterschied, sondern die Art und Weise, wie wir die Beziehung zu ihr gestalten.
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.2 Unsicherheiten beim Einsatz
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.2 Unsicherheiten beim Einsatz > Abbildung 4: Überblick zu verschiedenen Zielgruppen abgeleitet aus den Personas
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.2 Unsicherheiten beim Einsatz > Datenschutz
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.3 Veränderungen der Arbeitsstrukturen
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.4 Anforderungen an Ergebnisse und Qualität
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 3.  Welche Veränderungen bringen <u>generative KI und KI-Agenten mit sich?</u> > 3.5 Neue Anforderungen an Kompetenzen in Unternehmen
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 4. Gestaltungsoptionen und Ausblick
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 4. Gestaltungsoptionen und Ausblick > Unternehmen müssen klare Leitlinien und Richtlinien (wie zum Beispiel Betriebsvereinbarungen) schaffen.
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 4. Gestaltungsoptionen und Ausblick > Grundsätzlich müssen sich Unternehmen über ihre eigenen Qualitätsstandards klar werden und diese bewusst verankern.
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 4. Gestaltungsoptionen und Ausblick > Generative KI vereinfacht den Zugang zu Wissen: Denn sie ermöglicht, Wissenssilos aufzubrechen und Wissen auch für Nicht-ExpertInnen zugänglich zu machen.
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 4. Gestaltungsoptionen und Ausblick > Generative KI unterstützt die Beschäftigten als sogenannter „Co-Pilot“, während KI-Agenten innerhalb ihrer Zielerreichung autonom agieren.
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 4. Gestaltungsoptionen und Ausblick > Die Folge der Effizienzgewinne durch generative KI und KI-Agenten sollte nicht eine Arbeitsverdichtung sein.
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 4. Gestaltungsoptionen und Ausblick > Die Angst vor dem Jobverlust resultiert oftmals aus einer Gleichsetzung von „Tätigkeitsübernahme“ durch KI mit „Berufsverlust“.
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 4. Gestaltungsoptionen und Ausblick > Organisationen, die systematisch generative KI und KI-Agenten einsetzen wollen, unterliegen einer fundamentalen Unternehmenstransformation.
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 4. Gestaltungsoptionen und Ausblick > Bisher schafft nur eine kleine Anzahl an – insbesondere agentischen – KI-Projekten den Sprung von der Testphase in den Dauerbetrieb.
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 4. Gestaltungsoptionen und Ausblick > Vision für die Zukunft aufzeigen
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > 4. Gestaltungsoptionen und Ausblick > Vision für die Zukunft aufzeigen > Schlussendlich stellt sich die Frage, wie sich Arbeit, Tätigkeiten, Zusammenarbeit und Organisationsstrukturen in Zukunft durch den flächendeckenden Einsatz von generati-
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Literatur
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Über dieses Whitepaper
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Über dieses Whitepaper > Autorinnen und Autoren
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Über dieses Whitepaper > Gastautorin und Gastautoren
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Über dieses Whitepaper > Redaktion
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Über dieses Whitepaper > Redaktionelle Mitarbeit
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Über dieses Whitepaper > Impressum
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Über dieses Whitepaper > Impressum > Herausgeber
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Über dieses Whitepaper > Impressum > Gestaltung
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Über dieses Whitepaper > Impressum > Stand
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Über dieses Whitepaper > Impressum > Bildnachweis
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Über dieses Whitepaper > Impressum > Empfohlene Zitierweise
+Generative KI und KI-Agenten in Unternehmen Vom Assistenten zum Akteur > Über dieses Whitepaper > Über die Plattform Lernende Systeme
