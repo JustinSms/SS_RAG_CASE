@@ -114,6 +114,10 @@ export type Source = {
   page_start: number
   page_end: number
   heading_path: string
+  // Retrieval scores. null for a chunk added by section selection (rerank also when the reranker
+  // failed); missing in chats saved before the scores were sent.
+  cosine?: number | null
+  rerank?: number | null
 }
 
 export type HistoryMessage = { role: "user" | "assistant"; content: string }

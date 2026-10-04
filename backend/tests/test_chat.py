@@ -107,6 +107,8 @@ def test_answer_is_built_from_the_labelled_context_in_document_order(client, mon
         "page_start": 7,
         "page_end": 8,
         "heading_path": "7 Terms",
+        "cosine": 0.8,
+        "rerank": 0.9,  # the fake reranker in conftest.py
     }
     system = llm.calls[0]["system"]
     assert system.index("Terms apply.") < system.index("Notice is thirty days.")
@@ -255,6 +257,27 @@ def test_the_trace_keeps_the_score_of_every_candidate(monkeypatch):
     assert trace.rerank_scores == [0.8, 0.5, 0.2]  # same order as trace.reranked
 
 
+def test_each_source_carries_its_cosine_and_rerank_score(client, monkeypatch, llm):
+    monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: [hit(1, "Chunk 1.", similarity=0.61)])
+    use_reranker(monkeypatch, ScoresByText({"Chunk 1.": 0.82}))
+
+    source = ask(client).json()["sources"]["c1"]
+
+    assert source["cosine"] == 0.61
+    assert source["rerank"] == 0.82
+
+
+def test_a_chunk_added_by_section_selection_has_no_scores(client, monkeypatch, llm):
+    monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: [hit(1, "Chunk 1.")])
+    extra = hit(2, "Chunk 2.", similarity=0)  # load_section_chunks gives similarity 0
+    monkeypatch.setattr(pipeline, "select_extra_chunks", lambda session, question, top: [extra])
+
+    sources = ask(client).json()["sources"]
+
+    assert sources["c2"]["cosine"] is None
+    assert sources["c2"]["rerank"] is None
+
+
 def test_a_failing_reranker_keeps_the_cosine_order_and_still_answers(client, monkeypatch, llm):
     hits = [hit(n, f"Chunk {n}.") for n in range(1, settings.TOP_N + 3)]
     monkeypatch.setattr(pipeline, "search_chunks", lambda session, vector: hits)
@@ -272,6 +295,7 @@ def test_a_failing_reranker_keeps_the_cosine_order_and_still_answers(client, mon
     assert {s["page_start"] for s in body["sources"].values()} == set(range(1, settings.TOP_N + 1))
     assert trace.reranked is None
     assert trace.top_n == [h.chunk_id for h in hits[: settings.TOP_N]]
+    assert all(s["rerank"] is None and s["cosine"] == 0.8 for s in body["sources"].values())
 
 
 def test_a_reranker_that_cannot_load_keeps_the_cosine_order(client, monkeypatch, llm):
@@ -381,7 +405,9 @@ def test_the_selector_gets_the_search_question_and_only_the_top_chunks(monkeypat
 
     pipeline.select_context(None, "follow-up", [{"role": "user", "content": "x"}])
 
-    assert seen == [("standalone", hits[: settings.TOP_N])]
+    question, kept = seen[0]
+    assert question == "standalone"
+    assert [h.chunk_id for h in kept] == [h.chunk_id for h in hits[: settings.TOP_N]]
 
 
 def test_a_not_found_question_skips_the_selection(client, monkeypatch, llm):

@@ -1,5 +1,6 @@
 import logging
 
+import pytest
 from sqlalchemy import select
 
 from app.retrieval import pipeline
@@ -108,3 +109,10 @@ def test_the_verdict_names_what_went_wrong():
     assert run.verdict(answerable, run.Outcome(False, False, 1.0, False)) == "miss"
     assert run.verdict(unanswerable, run.Outcome(True, True, 1.0, False)) == "refused"
     assert run.verdict(unanswerable, run.Outcome(False, False, 1.0, False)) == "not refused"
+
+
+def test_only_the_full_run_needs_the_api_key(monkeypatch):
+    monkeypatch.setattr(run, "check_api_key", lambda: "missing")
+    run.require_api_key(scores_only=True)  # no model call in the scores-only run
+    with pytest.raises(SystemExit):
+        run.require_api_key(scores_only=False)

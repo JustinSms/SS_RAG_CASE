@@ -24,7 +24,7 @@ function EmptyState({ noReadyDocuments }: { noReadyDocuments: boolean }) {
       <div className="space-y-1.5">
         <h1 className="text-2xl">Ask your documents</h1>
         <p className="max-w-md text-muted-foreground">
-          Answers are grounded in your uploaded PDFs, with a source tag after each statement.
+          Answers are grounded in your uploaded PDFs, with source tags that open the cited page.
         </p>
       </div>
       {noReadyDocuments && (

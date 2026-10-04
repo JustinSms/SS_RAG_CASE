@@ -17,6 +17,8 @@ class Source:
     page_start: int
     page_end: int
     heading_path: str
+    cosine: float | None = None  # B2 score; None for a chunk added by section selection
+    rerank: float | None = None  # B3 score; None if the reranker failed or the chunk was selected
 
 
 def clean_citations(answer: str, sources: dict[str, Source]) -> str:

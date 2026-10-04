@@ -12,22 +12,23 @@ Deterministic, no network, LLM and models replaced by small fakes.
 | `sections.py` | Headings become the right tree; heading path `2 Scope > 2.1 Data`; text before the first heading lands in a root section |
 | `chunker.py` | Chunks never exceed `MAX_CHUNK_SIZE`, keep the overlap, never cross a section; page ranges correct when a chunk spans a page break; a PDF without headings becomes pseudo-sections |
 | Combine step (B7) | Top N + selected chunks: each chunk once, in document order, labelled with heading path and pages |
-| Citation mapping | `[c12]` maps to document, pages, headings from the DB; unknown ids are dropped; a statement without an id is detected |
+| Citation mapping | `[c12]` maps to document, pages, headings from the DB; unknown ids are dropped; text with no id after it in its paragraph or list item is detected (several sentences may share one id) |
 | Fallbacks | Failing rewrite, reranker or selection still gives an answer; invalid enrichment JSON stores the chunk unenriched |
 | Startup | Missing API key reported by `/api/health`; documents left in `processing` are marked failed |
 | "Not found" | Nothing above `SIMILARITY_CUTOFF` or best rerank below `RERANK_MIN_SCORE` gives the "not found" answer without calling the answer model |
+| Evaluation harness (`test_eval_*.py`) | Question file checks, hit rule, rates, Wilson intervals, sign test, tuning, scores-only run without a key, progress lines |
 | API (FastAPI `TestClient`) | Upload returns `202`; same file again returns `409`; over 10 MB `413`; non-PDF `415`; `overwrite=true` replaces chunks, and a failed overwrite keeps the old ones; delete cascades; `/api/health` |
 
 Plus one **Docker smoke test** script: fresh clone, `docker compose up --build`, wait for health, upload a sample PDF, ask one question, check an answer with a valid citation comes back. This is the test for "it runs on our machine". Run it after every build step from step 3, and before the demo.
 
-Not planned: frontend unit tests and end-to-end browser tests (the smoke test covers the happy path; "exhaustive edge cases" are explicitly not evaluated).
+Frontend tests: vitest + Testing Library with `fetch` stubbed (`npm test`): the three pages, the app shell and citation parsing. Not planned: end-to-end browser tests (the smoke test covers the happy path; "exhaustive edge cases" are explicitly not evaluated).
 
 ## 2. Evaluation (`eval/`, run on demand)
 
 The details (hit rule, question file, rates, noise, cross-validation, schema) are in `evaluation-metrics.md`. Summary:
 
 ### Setup
-- **5 public PDFs, 24 questions each, 120 in total** (2 already downloaded). Suggested: EU AI Act in English and German (backs the multilingual model choice), a technical standard, an annual report with tables (shows where PyMuPDF4LLM struggles), and one more regulation. For the English/German pair, both language versions count as gold (see `evaluation-metrics.md` §1).
+- **5 public PDFs, 24 questions each, 120 in total:** two German (`A-EW_290_Windthesen_WEB.pdf`, `GenAIInUnternehmen.pdf`) and three English (`NIST.CSWP.29.pdf`, `PolarBearHandbookforArcticGuides2026.pdf`, `cfpb_your-home-loan-toolkit.pdf`). Questions are asked in the language of their PDF. There is no pair of the same content in two languages, so the two-language gold rule (`evaluation-metrics.md` §1) is not used, and cross-language retrieval is not measured. The PDFs are gitignored.
 - **Gold is a heading.** Claude reads each PDF and marks the document and the deepest heading containing the answer, as a full heading path copied from the parser's section tree (`eval/trees/`). Pages are not used for matching.
 - You spot-check 10 labels per PDF before the first run.
 
@@ -54,13 +55,13 @@ Not in the set, and so not measured: follow-up questions (the rewrite step B0) a
 - Optional: with vs. without enrichment (context sentence in the embedding).
 
 ### How it runs
-A separate script in `eval/`, started on demand as a compose profile (`docker compose --profile eval run --rm eval python run.py`), with its own database `docchat_eval` so the app database stays empty. The eval script creates it from code on start (`CREATE DATABASE` if missing, then `create_all`); no Postgres init script. `/api/chat` and the eval call the same retrieval function, which returns a trace of chunk ids and scores. Flow: ingest, write the questions, one scores-only run, tune, report (no manual grading; a full run with section selection is optional; see `eval/README.md`). `eval/results.md` is committed and linked from the README.
+A separate script in `eval/`, started on demand as a compose profile (`docker compose --profile eval run --rm eval python run.py --label sweep --scores-only`), with its own database `docchat_eval` so the app database stays empty. The eval script creates it from code on start (`CREATE DATABASE` if missing, then `create_all`); no Postgres init script. `/api/chat` and the eval call the same retrieval function, which returns a trace of chunk ids and scores. Flow: ingest, write the questions, one scores-only run, tune, report (no manual grading; a full run with section selection is optional; see the README, "Retrieval evaluation"). `eval/results.md` is committed and linked from the README.
 
 ## 3. How it fits the call
 - Don't run the evaluation live (it takes hours: the reranker runs on the CPU). Show `eval/results.md` instead.
 - One table tells the retrieval story: hit rate and refusal rate on the top N chunks after reranking, with the intervals, and the thresholds chosen from the tuning. Say clearly that the answers themselves, follow-ups and two-document questions are not evaluated yet.
 - Pick 2–3 questions from the set for the live demo, including one unanswerable one, so the demo matches the numbers.
-- Expect questions such as "how did you pick 0.45?": the tuning table is the answer. "How do you know reranking helps?" can be answered by a run with a different setting and `report.py compare`; the per-stage table was cut.
+- Expect questions such as "how did you pick 0.45?": the tuning table is the answer. "How do you know reranking helps?" has no ready answer: there is no switch to run without the reranker, and the per-stage table was cut. `report.py compare` compares two runs (with `--stage final` for runs with different thresholds; the default rescores both with the same thresholds).
 
 ## 4. Build order
 Tests grow with build steps 2–4 in `app-structure.md`. The retrieval trace goes in with the retrieval pipeline (step 4). The questions can be written any time before that and also guide the choice of test documents. `run.py` and `report.py` come after the happy path works (step 7). Next project step after that: evaluate the answers (by hand or with an LLM judge).
@@ -76,4 +77,4 @@ Tests grow with build steps 2–4 in `app-structure.md`. The retrieval trace goe
 1. Answer correctness: not evaluated now; by hand or with an LLM judge is decided in the next step.
 2. Neighbours vs. selection comparison: decided, out of scope, listed under next steps.
 3. Diagnostic table: cut (2026-10-04).
-4. Final choice of the 5 PDFs: Justin picks them once the app runs, so they can be chosen against real results.
+4. Final choice of the 5 PDFs: picked (see §2 Setup).

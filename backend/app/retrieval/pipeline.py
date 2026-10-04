@@ -3,7 +3,7 @@
 import logging
 import uuid
 from collections.abc import Iterator
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from sqlalchemy.orm import Session
 
@@ -54,7 +54,7 @@ def history_messages(history: list[dict]) -> list[dict]:
 
 
 def rerank(question: str, hits: list[Hit]) -> tuple[list[Hit], list[float] | None]:
-    """B3: the hits best first, and their scores. Reranker failure keeps the cosine order (scores None)."""
+    """B3: the hits best first, each with its score. Reranker failure keeps the cosine order (scores None)."""
     try:
         scores = get_reranker().score(question, [h.text for h in hits])
     except Exception:
@@ -62,7 +62,7 @@ def rerank(question: str, hits: list[Hit]) -> tuple[list[Hit], list[float] | Non
         return hits, None
     ranked = sorted(zip(hits, scores), key=lambda pair: pair[1], reverse=True)
     log.info("best rerank scores: %s", [round(score, 3) for _, score in ranked[:SCORES_LOGGED]])
-    return [hit for hit, _ in ranked], [score for _, score in ranked]
+    return [replace(hit, rerank=score) for hit, score in ranked], [score for _, score in ranked]
 
 
 def combine(top: list[Hit], selected: list[Hit]) -> list[Hit]:
@@ -105,7 +105,14 @@ def build_prompt(context: list[Hit], question: str, history: list[dict]) -> tupl
     for number, hit in enumerate(context, start=1):
         label = f"c{number}"
         sources[label] = Source(
-            label, str(hit.document_id), hit.filename, hit.page_start, hit.page_end, hit.heading_path
+            label,
+            str(hit.document_id),
+            hit.filename,
+            hit.page_start,
+            hit.page_end,
+            hit.heading_path,
+            cosine=hit.similarity if hit.similarity > 0 else None,  # 0: not found by the search
+            rerank=hit.rerank,
         )
         pages = f"p. {hit.page_start}" if hit.page_start == hit.page_end else f"p. {hit.page_start}-{hit.page_end}"
         blocks.append(f"[{label}] {hit.filename}, {pages}, {hit.heading_path}\n{hit.text}")

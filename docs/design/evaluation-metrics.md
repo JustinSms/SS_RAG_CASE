@@ -8,10 +8,10 @@ Setup: 5 public PDFs, 24 questions each, 120 in total (about 100 answerable, abo
 ## 1. Ground rules
 
 - **Gold is a heading, not a chunk id or a page.** For every answerable question, Claude reads the PDF and records the document and the deepest heading that contains the answer. Gold survives re-chunking and re-ingestion.
-- **Gold headings are full heading paths from the parser's section tree.** `ingest.py` exports the heading paths the ingestion produced for each PDF (`eval/trees/<pdf>.txt`, one path per line, for example `CHAPTER II > Article 5`), and the gold is copied from there. Otherwise a correct retrieval can count as a miss because Claude and PyMuPDF4LLM name a heading differently. Cost: a parser mistake (a missed heading) does not show up as a retrieval failure. Covered by a one-time look at each PDF's heading tree.
+- **Gold headings are full heading paths from the parser's section tree.** `ingest.py` exports the heading paths the ingestion produced for each PDF (`eval/trees/<pdf file name>.txt`, for example `eval/trees/NIST.CSWP.29.pdf.txt`, one path per line), and the gold is copied from there. Otherwise a correct retrieval can count as a miss because Claude and PyMuPDF4LLM name a heading differently. Cost: a parser mistake (a missed heading) does not show up as a retrieval failure. Covered by a one-time look at each PDF's heading tree.
 - **Deepest heading.** If the answer is in "3.2.1", the gold is "3 > 3.2 > 3.2.1", not "3". A coarse gold makes almost every chunk a hit.
 - **Hit rule.** A retrieved chunk has a source `[document, page(s), heading path]`. It is **in a gold section** if its section is the gold section or a subsection of it, in the same document. A chunk in a parent section's own text does not count unless the parent is the gold. Pages are shown to the user and are not used for matching. **One such chunk makes the question a hit**, however many other chunks the context holds, and however many gold sections the question has.
-- **Same content in two languages.** The app always searches all documents, so an English question about the EU AI Act may correctly retrieve the German copy. For questions on that pair, the matching heading in both language versions is listed as gold; finding either one is a hit.
+- **Same content in two languages.** The app always searches all documents, so a question could correctly retrieve a copy of the same text in another language. For such a pair, the matching heading in both language versions is listed as gold; finding either one is a hit. The current five PDFs have no such pair, so this rule is not used.
 - **The score is taken on the top N chunks after reranking (step B4).** They are recomputed from the scores stored by one run, with each PDF's tuned thresholds. Section selection (B5-B6) is not part of the score: it only adds chunks from sections the top N already hit, and such a chunk has the same heading path as the chunk that brought its section in, so it cannot turn a miss into a hit or a hit into a miss. Selection does not change a refusal either (that is decided before it). A full run with selection is optional (section 6) and adds only the size of the selected chunks. The answer model is not called in the evaluation.
 
 ## 2. Questions
@@ -20,22 +20,22 @@ Setup: 5 public PDFs, 24 questions each, 120 in total (about 100 answerable, abo
 Questions live in YAML files in the repo (versioned, reviewable), one file per PDF, and are loaded into the `eval` database schema (section 6). Every question is standalone (no conversation history):
 
 ```yaml
-- id: ai-act-07                  # unique across all files; prefix it with the PDF
-  document: eu-ai-act-en.pdf     # the PDF the question belongs to (decides its fold, section 5)
-  question: "Which AI practices are prohibited?"
+- id: cfpb-01                                  # unique across all files; prefix it with the PDF
+  document: cfpb_your-home-loan-toolkit.pdf    # the PDF the question belongs to (decides its fold, section 5)
+  question: "What is force-placed insurance, and how much more can it cost me?"
   answerable: true
-  gold:                          # one or more sections that contain the answer
-    - {document: eu-ai-act-en.pdf, heading: "CHAPTER II > Article 5"}
-    - {document: eu-ai-act-de.pdf, heading: "KAPITEL II > Artikel 5"}   # the German copy, if there is one
+  gold:                                        # one or more sections that contain the answer
+    - {document: cfpb_your-home-loan-toolkit.pdf, heading: "Choosing the best mortgage for you > Be sure to budget for homeowner's insurance"}
+  # evidence: p. 4, "the cost to you could be twice as much as you would regularly pay for insurance"
 
-- id: ai-act-21
-  document: eu-ai-act-en.pdf
-  question: "What is the budget of the EU AI Office for 2027?"
+- id: cfpb-21
+  document: cfpb_your-home-loan-toolkit.pdf
+  question: "What is the maximum loan amount for an FHA loan in 2026?"
   answerable: false
-  gold: []                       # empty for unanswerable
+  gold: []                                     # empty for unanswerable
 ```
 
-There is no question type and no reference answer: answers are not evaluated yet. A `reference_answer` field can be added when they are.
+Comments (`# evidence: ...`, `# why not answerable: ...`) are notes for the person checking a question; the loader ignores them. There is no question type and no reference answer: answers are not evaluated yet. A `reference_answer` field can be added when they are.
 
 ### Checks before a run
 `run.py` loads the files first and stops, listing every problem at once, if:
@@ -92,7 +92,7 @@ The questions are a sample, so every rate is an estimate. The 95% interval is ab
 - Retrieval is deterministic (same questions and settings give the same chunks). The section selection call is an LLM call (temperature: see the open point in `docs/decisions.md`).
 
 ### Comparing two configurations
-Run both on the same questions and count the flips: questions only A gets right (b) and only B gets right (c), answerable and unanswerable together. A sign test on b against c says whether the difference is real (12 against 3: p ≈ 0.04; 8 against 5: p ≈ 0.58). Rule of thumb: about 15 flipped questions in a ratio of about 3 to 1. `report.py compare` prints `A only: b, B only: c, p`.
+Run both on the same questions and count the flips: questions only A gets right (b) and only B gets right (c), answerable and unanswerable together. A sign test on b against c says whether the difference is real (12 against 3: p ≈ 0.04; 8 against 5: p ≈ 0.58). Rule of thumb: about 15 flipped questions in a ratio of about 3 to 1. `report.py compare` prints `A only: b, B only: c, p`. Its default `--stage rerank` rescores both runs with the same thresholds from `folds.json`; use `--stage final` to compare runs made with different thresholds.
 
 ### Tuning with leave-one-PDF-out
 Instead of a fixed dev/test split, tune on 4 PDFs and score the 5th, repeated for every PDF. The pooled scores of the 5 held-out folds cover all 120 questions and are the honest estimate. It also shows whether the thresholds hold on an unseen document.
@@ -106,14 +106,14 @@ Instead of a fixed dev/test split, tune on 4 PDFs and score the 5th, repeated fo
 ## 6. How the evaluation fits into the project
 
 - **Separate script, same code path.** `eval/` lives in the repo, is not needed for the happy path, and is started on demand. The retrieval pipeline returns a trace (chunk ids plus scores); `/api/chat` and the eval call the same function, so the eval measures the real code. This is the only change to app code.
-- **Runs in Docker** as a fourth compose service under a profile, using the `api` image with `eval/` mounted: `docker compose --profile eval run --rm eval python run.py`. `docker compose up` does not start it. It reuses the models, `env/config.py` and the Anthropic key (for enrichment during ingestion, and for the selection step in an optional full run; no answer calls).
+- **Runs in Docker** as a fourth compose service under a profile, using the `api` image with `eval/` mounted, for example `docker compose --profile eval run --rm eval python run.py --label sweep --scores-only` (`--label` is required). `docker compose up` does not start it. It reuses the models, `env/config.py` and the Anthropic key (for enrichment during ingestion, and for the selection step in an optional full run; no answer calls). The scores-only run and the report need no key.
 - **Own database.** `docchat_eval` in the same Postgres container, created by the eval script on start (`CREATE DATABASE` if missing, then `create_all`), so the app database stays empty and the chat never searches the eval PDFs. Tables in the `eval` schema: `questions`, `gold` (question, document name, heading path as text, no foreign key to `sections`, so re-ingestion doesn't break it), `results` (run, question, stage `candidates` or `final`, chunks with their scores, refused, latency, fallback).
 - **Fallbacks stop the run.** If the reranker cannot load, or the rerank or selection step falls back during a question, `run.py` exits non-zero and lists the questions: the numbers would describe a different pipeline.
 - **Thresholds** come from `env/config.py`; the tuning overrides them per run.
 
 ```
 eval/
-  pdfs/          the 5 public PDFs (or a download list if the licence is unclear)
+  pdfs/          the 5 public PDFs (gitignored, not in the repository)
   questions/     one YAML per PDF
   trees/         heading paths per PDF, written by ingest.py (gold is copied from here)
   ingest.py      loads the PDFs through the real ingestion pipeline, writes trees/
@@ -121,10 +121,13 @@ eval/
   report.py      rates, intervals, tuning, flip counts; writes folds.json and results.md
   metrics.py     the maths, no database
   questions.py   loads and checks the question files
-  README.md      how to run it
+  progress.py    elapsed time and time left for the progress lines
+  db.py          creates docchat_eval and its tables
+  folds.json     thresholds per PDF (written by report.py tune)
+  results.md     the result (written by report.py report)
 ```
 
-Flow: `ingest.py`, write the questions, `run.py --scores-only` (loosest settings, no selection call), `report.py tune` (leave-one-PDF-out thresholds into `folds.json`), `report.py report` (scores the sweep with each PDF's thresholds and writes `results.md`). No manual grading step. Optional: `run.py --label final --folds folds.json` runs the full pipeline with selection, and `report.py report --final final` then scores that stored context, which adds the size of the selected chunks and the selection latency. The reranker runs on the CPU, so a run over 120 questions takes hours; the optional full run roughly doubles that. Commit `results.md` and link it from the README so reviewers see the numbers without running anything.
+Flow: `ingest.py`, write the questions, `run.py --scores-only` (loosest settings, no selection call), `report.py tune` (leave-one-PDF-out thresholds into `folds.json`), `report.py report` (scores the sweep with each PDF's thresholds and writes `results.md`). No manual grading step. Optional: `run.py --label final --folds folds.json` runs the full pipeline with selection, and `report.py report --final final` then scores that stored context, which adds the size of the selected chunks and the selection latency. The reranker runs on the CPU, so a run over 120 questions takes hours; the optional full run roughly doubles that. Commit `results.md` and link it from the README so reviewers see the numbers without running anything. How to run it is in the README ("Retrieval evaluation").
 
 ## 7. Reporting (`results.md`)
 
@@ -135,4 +138,4 @@ Counts next to every percentage:
 4. **How much to trust the numbers**: the noise paragraph above in two sentences, what a hit does not tell you, what is not measured (follow-ups, two-document questions), and that the answers themselves are not evaluated yet.
 
 ## Open points
-1. Which PDFs? Justin picks them once the app is running. 2 are already downloaded. Suggestion for 5: EU AI Act (English), the same act in German, a technical standard, an annual report with tables, and one more regulation. Pick files under 10 MB (the upload limit). The effort is the labelling: about 100 gold headings, so Claude's draft plus your spot-check keeps it manageable.
+1. Which PDFs? Settled: two German and three English public PDFs, listed in `testing-evaluation.md` §2. No two-language pair, so cross-language retrieval is not measured.

@@ -69,6 +69,19 @@ test("shows the answer with the source tag from the stored source", async () => 
   expect(screen.getByText("Thirty days.")).toBeInTheDocument()
 })
 
+test("shows the retrieval score on each source tag", async () => {
+  const scored = { ...SOURCE, cosine: 0.612, rerank: 0.8249 }
+  const selected = { ...SOURCE, label: "c2", page_start: 14, page_end: 14, cosine: null, rerank: null }
+  stubApi([READY], () =>
+    sse(event("sources", { c1: scored, c2: selected }), event("text", "Thirty days. [c1, c2]"), event("done", {})),
+  )
+  renderChat()
+  await ask("Notice period?")
+
+  expect(await screen.findByText("0.82")).toHaveAccessibleName("Rerank score 0.82, cosine similarity 0.61")
+  expect(screen.getByText("added")).toHaveAccessibleName("Added by section selection (not scored)")
+})
+
 test("shows an error as a message and New chat clears the conversation", async () => {
   stubApi([READY], () => ({ ok: false, status: 502, json: async () => ({ detail: "Model unreachable" }) }))
   renderChat()

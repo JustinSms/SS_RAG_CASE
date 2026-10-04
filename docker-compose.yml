@@ -37,7 +37,8 @@ services:
     restart: unless-stopped
 
   # Retrieval evaluation, started on demand only:
-  #   docker compose --profile eval run --rm eval python run.py
+  #   docker compose --profile eval run --rm eval python run.py --label sweep --scores-only
+  # All steps are in the README, "Retrieval evaluation".
   # Same image as api, with eval/ mounted. Its own database (docchat_eval) and uploads volume.
   eval:
     profiles: ["eval"]
