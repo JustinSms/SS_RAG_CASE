@@ -10,7 +10,7 @@ You need **Docker** and an **Anthropic API key**. `ANTHROPIC_API_KEY` is the onl
 
 1. Give Docker **8 GB of memory** (Docker Desktop → Settings → Resources). The two local models need about 5 GB.
    **Windows (WSL2 backend):** Docker Desktop has no memory slider here; instead add `memory=8GB` under `[wsl2]` in `%UserProfile%\.wslconfig`, run `wsl --shutdown`, and restart Docker Desktop.
-2. Add your key. The `env/` folder contains a template, `.env.template`. The easiest way is to rename it to `.env` (or copy it):
+2. Add your key. The `env/` folder contains a **template**, `.env.template`. The easiest way is to rename it to `.env` (or copy it):
    ```
    mv env/.env.template env/.env
    ```
@@ -19,7 +19,7 @@ You need **Docker** and an **Anthropic API key**. `ANTHROPIC_API_KEY` is the onl
    ```
    docker compose up --build
    ```
-   The first build downloads about 4-5 GB (PyTorch and two models), so it takes a while. Nothing is downloaded after that.
+   The first build downloads about 4-5 GB (PyTorch and two models), so **it takes a while**. Nothing is downloaded after that.
 
    **Every later run:** the image already exists, so this is enough:
    ```
@@ -28,7 +28,7 @@ You need **Docker** and an **Anthropic API key**. `ANTHROPIC_API_KEY` is the onl
    Use `--build` again only after pulling new code.
 4. Open the app:
 
-> ### 👉 <http://localhost:8080>
+> ### <http://localhost:8080>
 >
 > This is the only address you need. The page appears once the models are loaded, which can take a minute after the containers start.
 
@@ -42,7 +42,7 @@ If something is wrong (missing or invalid key, too little memory), a banner at t
 
 The app has three pages:
 
-- **Upload:** add PDFs (up to 10 MB each), see a progress bar while they are processed, delete them. Uploading the same file twice asks whether to overwrite it.
+- **Upload:** add PDFs (the biggest I tested had 50 pages), see a progress bar while they are processed, delete them. Uploading the same file twice asks whether to overwrite it.
 - **Chat:** ask questions, including follow-ups like "and what about the second one?". Each source tag shows how confident the search was.
 - **Database:** a read-only view of what the app made of each document: its section tree and its chunks with their summaries.
 
@@ -99,7 +99,7 @@ The full reasoning, including what broke along the way, is in [docs/decisions.md
 
 **Setup.** 5 public PDFs (2 German, 3 English: a wind energy paper, a GenAI study, the NIST Cybersecurity Framework, a polar bear handbook and a US home loan guide) and 120 questions: 24 per PDF, of which 4 cannot be answered from the document. The thresholds were tuned on four PDFs and tested on the fifth, in turn, so no PDF is scored with settings tuned on itself.
 
-**Results (first run, 4 Oct 2026)**
+**Results (4 Oct 2026)**
 
 | Question type | Result |
 |---|---|
@@ -110,13 +110,13 @@ The full reasoning, including what broke along the way, is in [docs/decisions.md
 **What this means**
 
 - **Finding the right passage works well.** The app keeps the 5 best chunks per question. The evaluation also tested keeping only the best 3: then 99 of 100 questions still had the right section among them. So the result does not depend on the exact number 5.
-- **Saying "not found" works poorly.** For 14 of 20 unanswerable questions, the search still passes 5 related chunks to the answer model. The reranker judges whether a passage is on topic, not whether it actually answers the question, and these questions were on topic on purpose. Whether the answer model then declines or makes something up is not measured yet.
+- **Saying "not found" works poorly.** For 14 of 20 unanswerable questions, the search still passes 5 related chunks to the answer model. The reranker judges whether a passage is on topic, not whether it actually answers the question, and these questions were on topic on purpose. **Whether the answer model then declines or makes something up is not measured yet**.
 - **The tuned settings are not applied yet.** The tuning picked the values below, but two of them sit at the edge of the range that was tried, with the score still rising there, so the real best values probably lie beyond it. The app therefore still runs with its original values.
 
-| Setting | What it does | Range tried | Best value found | App uses now |
+| Setting | What it does | Range tried | Best value found | App uses now (adapt in config.py) |
 |---|---|---|---|---|
-| Similarity cutoff | Minimum similarity for a chunk to become a candidate | 0.3 to 0.6 | **0.3** (lowest value tried) | 0.45 |
-| Rerank minimum | Below this reranker score the app says "not found" | 0.01 to 0.5 | **0.5** (highest value tried) | 0.1 |
+| Similarity cutoff | Minimum similarity for a chunk to become a candidate | 0.3 to 0.6 | **0.3** (lowest value tried) | 0.35 |
+| Rerank minimum | Below this reranker score the app says "not found" | 0.01 to 0.5 | **0.5** (highest value tried) | 0.3 |
 | Chunks kept | How many chunks are kept after reranking | 3, 5 or 8 | 5 | 5 |
 
   A higher rerank minimum is the most likely way to improve the "not found" result, since it is the setting that decides when the app refuses.
@@ -124,8 +124,7 @@ The full reasoning, including what broke along the way, is in [docs/decisions.md
 **How far to trust it**
 
 - 100% is probably too flattering: the questions were written while looking at the answer text, and the sections are small.
-- 20 unanswerable questions is a small sample. The real "not found" rate could be anywhere between about 15% and 50%.
-- The run used an older setting (50 search candidates instead of the current 20). I decided not to rerun it for that.
+- 20 unanswerable questions is a small sample. The real "not found" rate could be different. 
 - Follow-up questions and questions that need two documents are not part of the test.
 
 **Run it yourself.** Put the five PDFs in `eval/pdfs/` (they are not in the repository), stop the app, then:
@@ -152,9 +151,7 @@ The evaluation uses its own database, so it never mixes with your uploads. Full 
 
 1. **Evaluate the answers**, by hand or with an LLM judge, including whether every citation really supports its sentence.
 2. **Fix the "not found" weakness**: finish the threshold tuning on a wider range and apply the result, and test whether the answer model declines correctly.
-3. **Support questions in another language than the document.**
-   - *Problem:* a question only reliably finds passages written in its own language. The search compares the meaning of the question with the meaning of the chunks, and this works much better within one language than across two. For example, an English question about a German PDF can score too low and be refused as "not found". The evaluation has no cross-language questions, so this is not measured yet.
-   - *Solution:* before the search, one cheap Claude Haiku call translates the question into the language of the stored documents (if the documents are in several languages, into each of them, and the search runs once per language). The answer is still written in the language the user asked in. Then I would add English questions about the German PDFs to the evaluation to measure the gain.
+3. **Support questions in another language than the document.** Search works best within one language, so a cheap Claude Haiku call would translate the question into each document language before the search or at document upload.
 4. **Add keyword search** next to the vector search and measure whether it helps.
 5. **Compare the LLM chunk selection with a simple "add the neighbouring chunks" rule** on completeness, cost and speed.
 6. **Add OCR** for scanned pages and better table handling.

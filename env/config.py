@@ -25,10 +25,10 @@ class Settings(BaseSettings):
     RERANK_MODEL_REVISION: str = "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e"  # pinned commit
 
     # Retrieval
-    SIMILARITY_CUTOFF: float = 0.45
+    SIMILARITY_CUTOFF: float = 0.35
     MAX_CANDIDATES: int = 20
     TOP_N: int = 5
-    RERANK_MIN_SCORE: float = 0.1  # reranker score is 0-1; provisional, tuned in the evaluation
+    RERANK_MIN_SCORE: float = 0.2  # reranker score is 0-1; provisional, tuned in the evaluation
     RERANK_BATCH_SIZE: int = 8  # pairs per reranker batch; small, long chunks are heavy on CPU
     RERANK_MAX_LENGTH: int = 2048  # tokens per (question, chunk) pair; a chunk is at most about 1,200
     HISTORY_TURNS: int = 4
