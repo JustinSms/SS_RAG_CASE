@@ -37,13 +37,20 @@ docker compose --profile eval run --rm eval python ingest.py        # PDFs -> da
 # now write the questions, picking gold headings from eval/trees/
 docker compose --profile eval run --rm eval python run.py --label sweep --scores-only
 docker compose --profile eval run --rm eval python report.py tune   # leave-one-PDF-out thresholds -> eval/folds.json
+docker compose --profile eval run --rm eval python report.py report # scores the sweep with those thresholds -> eval/results.md
+```
+
+Optional, a full run with section selection (one Sonnet call per question, roughly doubles the time):
+
+```
 docker compose --profile eval run --rm eval python run.py --label final --folds folds.json
-docker compose --profile eval run --rm eval python report.py report # writes eval/results.md
+docker compose --profile eval run --rm eval python report.py report --final final
 ```
 
 - `ingest.py` goes through the real ingestion (parse, sections, chunks, Haiku enrichment, embedding), so it calls Anthropic once per section. It skips a PDF that is already ingested.
 - `run.py --scores-only` runs at the loosest settings of the grid and skips the selection call. It stores the cosine and rerank score of every candidate, so `report.py` can recompute any threshold without more calls. The tuning picks the thresholds with the most correct questions (hits plus right refusals).
-- `run.py --folds` runs the full retrieval; each question uses the thresholds tuned on the *other* PDFs. This is the headline run.
+- `report.py report` recomputes the top N after reranking from the stored scores, using for each PDF the thresholds tuned on the *other* PDFs. That is the headline. It does not need a second run: section selection only adds chunks from sections the top N already hit, so it cannot change a hit or a refusal.
+- `run.py --folds` is the optional full run. It adds the real size of the context with the selected chunks and the selection latency; the hit and refusal rates stay the same.
 - `run.py` stops with a warning if an optional step (rerank, selection) fell back during a question: those numbers would not show the real pipeline. A reranker that cannot load stops the run.
 - Both scripts print a progress line per item, with the elapsed time and an estimate of the time left:
 

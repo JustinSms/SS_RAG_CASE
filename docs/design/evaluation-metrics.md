@@ -12,7 +12,7 @@ Setup: 5 public PDFs, 24 questions each, 120 in total (about 100 answerable, abo
 - **Deepest heading.** If the answer is in "3.2.1", the gold is "3 > 3.2 > 3.2.1", not "3". A coarse gold makes almost every chunk a hit.
 - **Hit rule.** A retrieved chunk has a source `[document, page(s), heading path]`. It is **in a gold section** if its section is the gold section or a subsection of it, in the same document. A chunk in a parent section's own text does not count unless the parent is the gold. Pages are shown to the user and are not used for matching. **One such chunk makes the question a hit**, however many other chunks the context holds, and however many gold sections the question has.
 - **Same content in two languages.** The app always searches all documents, so an English question about the EU AI Act may correctly retrieve the German copy. For questions on that pair, the matching heading in both language versions is listed as gold; finding either one is a hit.
-- **The score is taken on the final context.** All numbers are computed on the chunks that would be given to the answer model (step B7). The answer model is not called in the evaluation.
+- **The score is taken on the top N chunks after reranking (step B4).** They are recomputed from the scores stored by one run, with each PDF's tuned thresholds. Section selection (B5-B6) is not part of the score: it only adds chunks from sections the top N already hit, and such a chunk has the same heading path as the chunk that brought its section in, so it cannot turn a miss into a hit or a hit into a miss. Selection does not change a refusal either (that is decided before it). A full run with selection is optional (section 6) and adds only the size of the selected chunks. The answer model is not called in the evaluation.
 
 ## 2. Questions
 
@@ -61,7 +61,7 @@ Both are recorded in `docs/decisions.md` as not measured.
 
 The system "refuses" when it would answer "not found" (nothing above `SIMILARITY_CUTOFF`, or best rerank score below `RERANK_MIN_SCORE`). Answerable and unanswerable questions are **reported separately**, because they measure different things: finding the right passage, and knowing when to say no.
 
-- **Hit rate** (answerable questions) = share of answerable questions where at least one chunk of the final context is in a gold section. A refused answerable question is a miss.
+- **Hit rate** (answerable questions) = share of answerable questions where at least one of the top N chunks is in a gold section. A refused answerable question is a miss.
 - **Refusal rate** (unanswerable questions) = share of unanswerable questions the system refuses. Low means the thresholds are too loose (the answer model would get unrelated context and may make something up).
 - **Refusal precision** = right refusals / all refusals. Low means the thresholds are too strict (answerable questions are refused).
 - **Context size** in tokens (mean over the questions that were answered), and the **average chunks per section** of each PDF. Large sections make hits easier, so the second number belongs next to the hit rate.
@@ -69,7 +69,7 @@ The system "refuses" when it would answer "not found" (nothing above `SIMILARITY
 
 Every rate is printed with its counts and a 95% interval, for example `85/100 (77–91%)`.
 
-**What a hit does not tell you.** It means one right chunk was in the context, not that the context was complete. Section selection (B6), which brings in the rest of a section, cannot raise the hit rate once the top N already hit. Precision, recall and a per-stage table (cosine, rerank, final) were dropped to keep the numbers easy to read and explain; see `docs/decisions.md`.
+**What a hit does not tell you.** It means one right chunk was in the context, not that the context was complete. Section selection (B6), which brings in the rest of a section, is not scored and could not change the hit rate anyway. Precision, recall and a per-stage table (cosine, rerank, final) were dropped to keep the numbers easy to read and explain; see `docs/decisions.md`.
 
 ## 4. Not evaluated yet: the answers
 
@@ -99,14 +99,14 @@ Instead of a fixed dev/test split, tune on 4 PDFs and score the 5th, repeated fo
 - Tuned: `SIMILARITY_CUTOFF`, `RERANK_MIN_SCORE`, `TOP_N`, over the grids `EVAL_CUTOFF_GRID`, `EVAL_RERANK_GRID`, `EVAL_TOP_N_GRID` in `env/config.py`.
 - **Target:** the number of correct questions, hits on the answerable ones plus refusals of the unanswerable ones. The tuning needs one number; the report still shows the two rates separately.
 - Settings within `EVAL_TUNE_TOLERANCE` (1% of the questions) of the best count as equally good; the pick is the middle of them per parameter, not the single best value.
-- The tuning scores the **rerank stage** (top N, no section selection): it is recomputed from stored scores, while selection is an LLM call. Section selection only adds chunks, so it cannot turn a hit into a miss; it does not change refusals either.
+- The tuning scores the **rerank stage** (top N), the same stage as the headline, recomputed from stored scores at no cost.
 - The cross-validated numbers are what the README reports as expected performance. The pooled pick over all questions is the default for `env/config.py`.
 - Does not shrink the interval above. It uses all questions for both tuning and scoring without scoring a question that picked its own threshold.
 
 ## 6. How the evaluation fits into the project
 
 - **Separate script, same code path.** `eval/` lives in the repo, is not needed for the happy path, and is started on demand. The retrieval pipeline returns a trace (chunk ids plus scores); `/api/chat` and the eval call the same function, so the eval measures the real code. This is the only change to app code.
-- **Runs in Docker** as a fourth compose service under a profile, using the `api` image with `eval/` mounted: `docker compose --profile eval run --rm eval python run.py`. `docker compose up` does not start it. It reuses the models, `env/config.py` and the Anthropic key (for enrichment during ingestion and the selection step; no answer calls).
+- **Runs in Docker** as a fourth compose service under a profile, using the `api` image with `eval/` mounted: `docker compose --profile eval run --rm eval python run.py`. `docker compose up` does not start it. It reuses the models, `env/config.py` and the Anthropic key (for enrichment during ingestion, and for the selection step in an optional full run; no answer calls).
 - **Own database.** `docchat_eval` in the same Postgres container, created by the eval script on start (`CREATE DATABASE` if missing, then `create_all`), so the app database stays empty and the chat never searches the eval PDFs. Tables in the `eval` schema: `questions`, `gold` (question, document name, heading path as text, no foreign key to `sections`, so re-ingestion doesn't break it), `results` (run, question, stage `candidates` or `final`, chunks with their scores, refused, latency, fallback).
 - **Fallbacks stop the run.** If the reranker cannot load, or the rerank or selection step falls back during a question, `run.py` exits non-zero and lists the questions: the numbers would describe a different pipeline.
 - **Thresholds** come from `env/config.py`; the tuning overrides them per run.
@@ -124,12 +124,12 @@ eval/
   README.md      how to run it
 ```
 
-Flow: `ingest.py`, write the questions, `run.py --scores-only` (loosest settings, no selection call), `report.py tune` (leave-one-PDF-out thresholds into `folds.json`), `run.py --folds folds.json` (the full pipeline with each PDF's thresholds), `report.py report` (writes `results.md`). No manual grading step. Commit `results.md` and link it from the README so reviewers see the numbers without running anything.
+Flow: `ingest.py`, write the questions, `run.py --scores-only` (loosest settings, no selection call), `report.py tune` (leave-one-PDF-out thresholds into `folds.json`), `report.py report` (scores the sweep with each PDF's thresholds and writes `results.md`). No manual grading step. Optional: `run.py --label final --folds folds.json` runs the full pipeline with selection, and `report.py report --final final` then scores that stored context, which adds the size of the selected chunks and the selection latency. The reranker runs on the CPU, so a run over 120 questions takes hours; the optional full run roughly doubles that. Commit `results.md` and link it from the README so reviewers see the numbers without running anything.
 
 ## 7. Reporting (`results.md`)
 
 Counts next to every percentage:
-1. **Main table** (final context, cross-validated), overall and per PDF: hit rate (answerable), refusal rate (unanswerable), context tokens, chunks per section. Refusal precision below it, and the retrieval latency.
+1. **Main table** (top N after reranking, cross-validated), overall and per PDF: hit rate (answerable), refusal rate (unanswerable), context tokens (top N only; selection adds more), chunks per section. Refusal precision below it, and the retrieval latency (without the selection call).
 2. **Tuning**: correct questions over the grid of `SIMILARITY_CUTOFF` and `RERANK_MIN_SCORE`, hit and refusal rate per `TOP_N`, the pooled pick and the pick per held-out PDF.
 3. **Failures**: every missed question with its retrieved chunks and the gold section (or "refusal"), to explain in the call.
 4. **How much to trust the numbers**: the noise paragraph above in two sentences, what a hit does not tell you, what is not measured (follow-ups, two-document questions), and that the answers themselves are not evaluated yet.
