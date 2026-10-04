@@ -36,12 +36,12 @@ Two kinds, all standalone (no conversation history), with no further types:
 
 | Kind | Share | Correct when |
 |---|---|---|
-| Answerable | ~80% (about 100) | At least one chunk of the final context is in a gold section or a subsection of it |
+| Answerable | ~80% (about 100) | At least one of the top N chunks after reranking is in a gold section or a subsection of it |
 | Unanswerable: plausible, on-topic, not in the documents | ~15-20% (about 20) | The system says "not found" |
 
 Not in the set, and so not measured: follow-up questions (the rewrite step B0) and questions that need two documents. See `docs/decisions.md`.
 
-### Metrics (on the final context that would be given to the answer model)
+### Metrics (on the top N chunks after reranking; section selection cannot change them, see `evaluation-metrics.md` §1)
 - **Hit rate** on the answerable questions and **refusal rate** on the unanswerable ones, reported separately, overall and per PDF. Refusal precision (how many "not found" answers were right) next to them, plus context size in tokens and chunks per section.
 - **No precision, recall or per-stage table:** one right chunk makes a hit, which keeps the numbers easy to explain. Cost: the evaluation cannot show whether the context is complete, so it cannot show what section selection adds.
 - **No answer grading:** answers are not generated or judged in the evaluation. Evaluating them (by hand or with an LLM) is the next step of the project.
@@ -54,11 +54,11 @@ Not in the set, and so not measured: follow-up questions (the rewrite step B0) a
 - Optional: with vs. without enrichment (context sentence in the embedding).
 
 ### How it runs
-A separate script in `eval/`, started on demand as a compose profile (`docker compose --profile eval run --rm eval python run.py`), with its own database `docchat_eval` so the app database stays empty. The eval script creates it from code on start (`CREATE DATABASE` if missing, then `create_all`); no Postgres init script. `/api/chat` and the eval call the same retrieval function, which returns a trace of chunk ids and scores. Flow: ingest, write the questions, a scores-only run, tune, the final run, report (no manual grading; see `eval/README.md`). `eval/results.md` is committed and linked from the README.
+A separate script in `eval/`, started on demand as a compose profile (`docker compose --profile eval run --rm eval python run.py`), with its own database `docchat_eval` so the app database stays empty. The eval script creates it from code on start (`CREATE DATABASE` if missing, then `create_all`); no Postgres init script. `/api/chat` and the eval call the same retrieval function, which returns a trace of chunk ids and scores. Flow: ingest, write the questions, one scores-only run, tune, report (no manual grading; a full run with section selection is optional; see `eval/README.md`). `eval/results.md` is committed and linked from the README.
 
 ## 3. How it fits the call
-- Don't run the evaluation live (it takes minutes and costs API calls for selection). Show `eval/results.md` instead.
-- One table tells the retrieval story: hit rate and refusal rate on the final context, with the intervals, and the thresholds chosen from the tuning. Say clearly that the answers themselves, follow-ups and two-document questions are not evaluated yet.
+- Don't run the evaluation live (it takes hours: the reranker runs on the CPU). Show `eval/results.md` instead.
+- One table tells the retrieval story: hit rate and refusal rate on the top N chunks after reranking, with the intervals, and the thresholds chosen from the tuning. Say clearly that the answers themselves, follow-ups and two-document questions are not evaluated yet.
 - Pick 2–3 questions from the set for the live demo, including one unanswerable one, so the demo matches the numbers.
 - Expect questions such as "how did you pick 0.45?": the tuning table is the answer. "How do you know reranking helps?" can be answered by a run with a different setting and `report.py compare`; the per-stage table was cut.
 
@@ -67,7 +67,7 @@ Tests grow with build steps 2–4 in `app-structure.md`. The retrieval trace goe
 
 ## Decided
 - 5 public PDFs, 120 questions, gold headings marked by Claude from the parser's section tree.
-- Hit = at least one retrieved chunk in a gold section. Hit rate (answerable) and refusal rate (unanswerable) on the final context, reported separately. No precision, recall, question types or per-stage table (2026-10-04).
+- Hit = at least one retrieved chunk in a gold section. Hit rate (answerable) and refusal rate (unanswerable) on the top N chunks after reranking, reported separately (no full run with selection needed). No precision, recall, question types or per-stage table (2026-10-04).
 - **No grading of answers in this evaluation.** Source overlap is the quick win; evaluating the answers is the next step (recorded in `docs/decisions.md`).
 - Follow-up and two-document questions left out (2026-10-04).
 - Cross-validation (leave-one-PDF-out) for tuning. Separate `eval/` script with its own database.

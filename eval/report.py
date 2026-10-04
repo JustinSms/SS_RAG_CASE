@@ -1,8 +1,13 @@
 """Metrics from stored runs, as eval/results.md. Nothing here calls a model.
 
     python report.py tune --sweep sweep           # leave-one-PDF-out thresholds -> folds.json
-    python report.py report --sweep sweep --final final
-    python report.py compare --a run1 --b run2    # which questions only one of two runs gets right
+    python report.py report --sweep sweep         # results.md, scored from the sweep with each PDF's tuned thresholds
+    python report.py report --sweep sweep --final final   # scored on the stored final context of a full run instead
+    python report.py compare --a run1 --b run2    # which questions only one of two runs gets right (--stage final)
+
+The headline is the rerank stage (top N) recomputed from the sweep's stored scores. Section selection only adds chunks
+from sections the top N already hit, so it cannot change a hit or a refusal; a full `run.py --folds` run is optional and
+only adds the size of the selected chunks and the selection latency.
 """
 
 import argparse
@@ -88,16 +93,16 @@ def pair(ratio: tuple[int, int]) -> str:
     return metrics.format_rate(*ratio)
 
 
-def main_row(label: str, records: list[Record], folds, per_section: float | None = None) -> list:
-    s = metrics.summarize(scored(records, "final", folds))
+def main_row(label: str, records: list[Record], folds, stage: str, per_section: float | None = None) -> list:
+    s = metrics.summarize(scored(records, stage, folds))
     return [label, pair(s.hits), pair(s.refusals), f"{s.tokens:.0f}", "-" if per_section is None else f"{per_section:.1f}"]
 
 
-def main_table(records, folds, per_section) -> str:
-    rows = [main_row("All", records, folds)]
+def main_table(records, folds, per_section, stage: str) -> str:
+    rows = [main_row("All", records, folds, stage)]
     for document in sorted({r.document for r in records}):
-        rows.append(main_row(document, [r for r in records if r.document == document], folds, per_section.get(document)))
-    overall = metrics.summarize(scored(records, "final", folds))
+        rows.append(main_row(document, [r for r in records if r.document == document], folds, stage, per_section.get(document)))
+    overall = metrics.summarize(scored(records, stage, folds))
     return table(
         ["PDF", "Hit rate (answerable)", "Refused (unanswerable)", "Context tokens", "Chunks per section"], rows
     ) + (
@@ -134,10 +139,10 @@ def tuning_section(sweep: list[Record], folds: dict[str, Thresholds]) -> str:
     ])
 
 
-def failures(records: list[Record], folds) -> str:
+def failures(records: list[Record], folds, stage: str) -> str:
     blocks = []
     for r in records:
-        chunks, refused = metrics.context_for(r, "final", folds[r.document])
+        chunks, refused = metrics.context_for(r, stage, folds[r.document])
         if metrics.score(r, chunks, refused).correct:
             continue
         got = "refused (\"not found\")" if refused else "; ".join(f"{c.document} > {c.heading_path}" for c in chunks) or "nothing"
@@ -146,13 +151,14 @@ def failures(records: list[Record], folds) -> str:
     return "\n".join(blocks) or "None."
 
 
-def latency_line(records: list[Record]) -> str:
+def latency_line(records: list[Record], stage: str) -> str:
     latencies = sorted(r.latency_s for r in records)
     p95 = latencies[min(len(latencies) - 1, int(SLOW_PERCENTILE * len(latencies)))]
-    return f"Retrieval latency per question (including the selection call): mean {sum(latencies) / len(latencies):.1f} s, p95 {p95:.1f} s."
+    step = "including the selection call" if stage == "final" else "without the selection call"
+    return f"Retrieval latency per question ({step}): mean {sum(latencies) / len(latencies):.1f} s, p95 {p95:.1f} s."
 
 
-def trust_section(records: list[Record]) -> str:
+def trust_section(records: list[Record], stage: str) -> str:
     answerable = sum(r.answerable for r in records)
     unanswerable = len(records) - answerable
     widths = []
@@ -164,29 +170,43 @@ def trust_section(records: list[Record]) -> str:
         f"{answerable} answerable questions and {widths[1]} points for the {unanswerable} unanswerable ones, and wider still "
         "for one PDF. Questions from the same PDF resemble each other, so read the per-PDF rows as indications of where "
         "retrieval fails. A hit means one right chunk was in the context, not that the context was complete. "
+        + ("" if stage == "final" else
+           "The context is scored after reranking, before section selection: selection only adds chunks from sections the top "
+           "N already hit, so it cannot change a hit or a refusal, but the token counts above leave out the chunks it adds. ") +
         "Not measured: follow-up questions (the rewrite step) and questions that need two documents. "
         "**The generated answers are not evaluated yet** (correctness, completeness, faithfulness, citation validity); "
         "finding the right source is necessary for a good answer but not sufficient. Evaluating the answers is the next step."
     )
 
 
-def render(final: list[Record], sweep: list[Record], folds: dict[str, Thresholds], per_section: dict[str, float],
-           fallbacks: list[str]) -> str:
+def render(records: list[Record], sweep: list[Record], folds: dict[str, Thresholds], per_section: dict[str, float],
+           fallbacks: list[str], stage: str = "rerank") -> str:
+    """`stage` is "rerank" (recomputed from the sweep's stored scores) or "final" (the stored context of a full run)."""
+    if stage == "final":
+        context = (
+            "## Main table: final context (the chunks the answer model would get)",
+            "least one chunk of the final context",
+        )
+    else:
+        context = (
+            "## Main table: the top N chunks after reranking",
+            "least one of the top N chunks after reranking",
+        )
     parts = [
         "# Retrieval evaluation",
-        f"{len(final)} questions on {len({r.document for r in final})} PDFs, all standalone. An answerable question is a hit if at "
-        "least one chunk of the final context is in a gold section or one of its subsections; an unanswerable question is "
+        f"{len(records)} questions on {len({r.document for r in records})} PDFs, all standalone. An answerable question is a hit if at "
+        f"{context[1]} is in a gold section or one of its subsections; an unanswerable question is "
         "correct if the system answers \"not found\". Thresholds are cross-validated leave-one-PDF-out. "
         "Details: `docs/design/evaluation-metrics.md`.",
-        "## Main table: final context (the chunks the answer model would get)",
-        main_table(final, folds, per_section),
-        latency_line(final),
+        context[0],
+        main_table(records, folds, per_section, stage),
+        latency_line(records, stage),
         "## Tuning",
         tuning_section(sweep, folds),
         "## Failures",
-        failures(final, folds),
+        failures(records, folds, stage),
         "## How much to trust the numbers",
-        trust_section(final),
+        trust_section(records, stage),
     ]
     if fallbacks:
         parts.insert(2, f"**Warning:** an optional step failed for {len(fallbacks)} questions ({', '.join(fallbacks)}); their rows do not show the real pipeline.")
@@ -201,20 +221,22 @@ def tune(session: Session, sweep: str) -> None:
     print(f"Wrote {FOLDS_FILE.name}: " + "; ".join(f"{d}: {t}" for d, t in folds.items()))
 
 
-def report(session: Session, sweep: str, final: str, folds_file: Path) -> None:
+def report(session: Session, sweep: str, final: str | None, folds_file: Path) -> None:
+    """Scored from the sweep (rerank stage) unless a full run is named."""
     folds = {d: Thresholds(**t) for d, t in json.loads(folds_file.read_text()).items()}
-    text = render(load_records(session, final), load_records(session, sweep), folds, chunks_per_section(session),
-                  fallback_questions(session, final))
+    run, stage = (final, "final") if final else (sweep, "rerank")
+    text = render(load_records(session, run), load_records(session, sweep), folds, chunks_per_section(session),
+                  fallback_questions(session, run), stage)
     RESULTS_FILE.write_text(text)
     print(f"Wrote {RESULTS_FILE.name}")
 
 
-def compare(session: Session, a: str, b: str, folds_file: Path) -> None:
+def compare(session: Session, a: str, b: str, folds_file: Path, stage: str = "rerank") -> None:
     folds = {d: Thresholds(**t) for d, t in json.loads(folds_file.read_text()).items()}
 
     def correct(run):
         records = load_records(session, run)
-        return {r.question_id: s.correct for r, s in zip(records, scored(records, "final", folds))}
+        return {r.question_id: s.correct for r, s in zip(records, scored(records, stage, folds))}
 
     only_a, only_b, p = metrics.flips(correct(a), correct(b))
     print(f"A only: {only_a}, B only: {only_b}, p = {p:.3f}")
@@ -224,7 +246,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("command", choices=["tune", "report", "compare"])
     parser.add_argument("--sweep", default="sweep", help="run made with --scores-only")
-    parser.add_argument("--final", default="final", help="run made with --folds")
+    parser.add_argument("--final", help="optional: a full run made with --folds, scored on its stored final context")
+    parser.add_argument("--stage", choices=["rerank", "final"], default="rerank", help="compare: what to score")
     parser.add_argument("--a")
     parser.add_argument("--b")
     parser.add_argument("--folds", type=Path, default=FOLDS_FILE)
@@ -240,7 +263,7 @@ def main() -> None:
         elif args.command == "report":
             report(session, args.sweep, args.final, args.folds)
         else:
-            compare(session, args.a, args.b, args.folds)
+            compare(session, args.a, args.b, args.folds, args.stage)
 
 
 if __name__ == "__main__":
