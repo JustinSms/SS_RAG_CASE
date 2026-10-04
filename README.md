@@ -141,7 +141,7 @@ The evaluation uses its own database, so it never mixes with your uploads. Full 
 ## 5. What broke
 
 - **The evaluation on unanswerable questions design.** The evaluation measures retrieval only, so for 14 of the 20 unanswerable questions the search passed 5 chunks to the answer model and nothing records whether the model declined or made something up. The true refusal rate is therefore somewhere between 30% (6 of 20) and 100%. This is the one step that still guards against a wrong answer, and it isn't measured. Grading these 14 cases comes first in the next steps.
-- **Cross-language questions design.** The design assumed the multilingual models would handle an English question about a German document. An early test scored 0.013 on the reranker, so the app answers "not found". The evaluation was meant to test an English/German pair, but the chosen PDFs had none, so it only showed up in manual use at the end. The translation fix is listed as a next step and not built.
+- **Cross-language questions design.** The design assumed the multilingual models would handle an English question about a German document. The translation fix is listed as a next step and not built.
 
 Smaller issues fixed along the way are in [docs/decisions.md](docs/decisions.md), under "What broke along the way".
 
