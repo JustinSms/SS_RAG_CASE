@@ -138,7 +138,14 @@ docker compose --profile eval run --rm eval python report.py report
 
 The evaluation uses its own database, so it never mixes with your uploads. Full tables and every failed question: [eval/results.md](eval/results.md).
 
-## 5. What I left out on purpose
+## 5. What broke
+
+- **The evaluation on unanswerable questions design.** The evaluation measures retrieval only, so for 14 of the 20 unanswerable questions the search passed 5 chunks to the answer model and nothing records whether the model declined or made something up. The true refusal rate is therefore somewhere between 30% (6 of 20) and 100%. This is the one step that still guards against a wrong answer, and it isn't measured. Grading these 14 cases comes first in the next steps.
+- **Cross-language questions design.** The design assumed the multilingual models would handle an English question about a German document. An early test scored 0.013 on the reranker, so the app answers "not found". The evaluation was meant to test an English/German pair, but the chosen PDFs had none, so it only showed up in manual use at the end. The translation fix is listed as a next step and not built.
+
+Smaller issues fixed along the way are in [docs/decisions.md](docs/decisions.md), under "What broke along the way".
+
+## 6. What I left out on purpose
 
 - **Scanned PDFs (OCR).** A PDF without a text layer is marked as failed with "no text found".
 - **Tables and images.** Tables are read as plain text; images and charts are ignored.
@@ -147,7 +154,7 @@ The evaluation uses its own database, so it never mixes with your uploads. Full 
 - **Multiple users.** No accounts, no server-side chat history, one upload processed at a time.
 - **File types other than PDF.**
 
-## 6. What I would do next
+## 7. What I would do next
 
 1. **Evaluate the answers**, by hand or with an LLM judge, including whether every citation really supports its sentence.
 2. **Fix the "not found" weakness**: finish the threshold tuning on a wider range and apply the result, and test whether the answer model declines correctly.
