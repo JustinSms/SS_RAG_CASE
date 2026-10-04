@@ -178,7 +178,7 @@ document-chat/
     architecture.md     the diagram and the two pipelines
   backend/  (Dockerfile, pyproject.toml, app/, tests/)
   frontend/ (Dockerfile, nginx.conf, package.json, src/)
-  eval/                 later: question set + precision / recall / accuracy script (source overlap)
+  eval/                 later: question set + hit rate / refusal rate script (source overlap)
 ```
 
 The brief HTML and the old `rag/` folder stay out of the repo (confidential, and its code is not reused; only ideas from an earlier review carry over).

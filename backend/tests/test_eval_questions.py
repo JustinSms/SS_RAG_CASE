@@ -28,8 +28,8 @@ def session():
 
 
 def entry(**changes):
-    base = {"id": "q1", "document": "act.pdf", "question": "What is in scope?", "type": "single_fact",
-            "answerable": True, "gold": [{"document": "act.pdf", "heading": "1 Scope"}], "history": []}
+    base = {"id": "q1", "document": "act.pdf", "question": "What is in scope?",
+            "answerable": True, "gold": [{"document": "act.pdf", "heading": "1 Scope"}]}
     return {**base, **changes}
 
 
@@ -38,7 +38,7 @@ def write(folder, *entries):
 
 
 def test_valid_questions_are_loaded(tmp_path):
-    write(tmp_path, entry(), entry(id="q2", type="unanswerable", answerable=False, gold=[]))
+    write(tmp_path, entry(), entry(id="q2", answerable=False, gold=[]))
 
     specs = questions.load_questions(tmp_path)
 
@@ -50,17 +50,17 @@ def test_every_problem_is_reported_at_once(tmp_path):
     write(
         tmp_path,
         entry(gold=[]),  # answerable without gold
-        entry(id="q2", type="nonsense"),
-        entry(id="q3", type="follow_up"),  # no history
-        entry(id="q3", type="unanswerable", answerable=False, gold=[]),  # duplicate id
-        entry(id="q5", answerable=False),  # unanswerable with gold, type disagrees
+        entry(id="q2", type="follow_up"),  # a field of the old format
+        entry(id="q3", answerable="false"),  # a string, not a boolean
+        entry(id="q3", answerable=False, gold=[]),  # duplicate id
+        entry(id="q5", answerable=False),  # unanswerable with gold
     )
 
     with pytest.raises(ValueError) as error:
         questions.load_questions(tmp_path)
 
     message = str(error.value)
-    for expected in ("q1: an answerable question needs gold", "q2: type must be one of", "q3: a follow_up needs history",
+    for expected in ("q1: an answerable question needs gold", "q2: unknown field 'type'", "q3: answerable must be true or false",
                      "duplicate id q3", "q5: an unanswerable question must have no gold"):
         assert expected in message
 

@@ -47,3 +47,14 @@ def test_a_changed_pdf_replaces_the_old_version(session_factory, pdf_folder, tmp
 def test_an_empty_folder_stops_with_a_message(session_factory, tmp_path):
     with pytest.raises(SystemExit, match="No PDFs"):
         ingest.ingest_all(session_factory, tmp_path, tmp_path / "trees")
+
+
+def test_each_pdf_prints_a_progress_line(session_factory, pdf_folder, tmp_path, capsys):
+    ingest.ingest_all(session_factory, pdf_folder, tmp_path / "trees")
+    first = capsys.readouterr().out
+    ingest.ingest_all(session_factory, pdf_folder, tmp_path / "trees")
+    second = capsys.readouterr().out
+
+    assert "[1/1] notes.pdf: ingesting ..." in first
+    assert "[1/1] notes.pdf: 1 sections, 1 chunks in 0:00 | elapsed" in first
+    assert "[1/1] notes.pdf: already ingested, skipped" in second

@@ -89,10 +89,10 @@ The full log, with what broke along the way, is in [docs/decisions.md](docs/deci
 ## Next steps
 
 1. **Evaluate the answers** (by hand or with an LLM judge), together with citation validity.
-2. **Retrieval evaluation** on a question set (accuracy, precision and recall on source overlap) and tuning of the cutoff, rerank threshold and `TOP_N` ([plan](docs/design/testing-evaluation.md)).
+2. **Retrieval evaluation** on a question set (hit rate on answerable questions, refusal rate on unanswerable ones) and tuning of the cutoff, rerank threshold and `TOP_N` ([plan](docs/design/testing-evaluation.md)).
 3. **Keyword (BM25) hybrid search** with Postgres full-text search, compared against dense-only in the evaluation.
 4. **OCR** for pages without a text layer (for example Tesseract through PyMuPDF).
-5. **Neighbour chunks vs. LLM section selection**, compared on accuracy, recall, context size and cost.
+5. **Neighbour chunks vs. LLM section selection**, compared on context completeness, context size and cost (needs a completeness measure; the hit rate cannot show it).
 6. **Server-side chat history.**
 7. **A task queue** (Celery/RQ + Redis) for several users and parallel uploads.
 8. **Migrations** with Alembic.

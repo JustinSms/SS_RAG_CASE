@@ -315,14 +315,14 @@ From milestone 6 on, also run the clean-clone smoke test before merging: `script
 
 Only start once milestones 1-13 are merged and the happy path is stable. Split into two branches if it gets big (harness first, then questions and tuning).
 
-**Goal:** retrieval numbers for the README: accuracy, precision, recall on source overlap.
+**Goal:** retrieval numbers for the README: hit rate on the answerable questions and refusal rate on the unanswerable ones (updated 2026-10-04, see `docs/decisions.md`).
 
 **Read:** `design/testing-evaluation.md` §2; `design/evaluation-metrics.md` (all).
 
 **Build:**
 - `eval/` as a compose profile (`docker compose --profile eval run --rm eval python run.py`), own database `docchat_eval` created from code.
-- Question YAML files (5 PDFs × 24 questions, gold headings picked from the parser's section tree); you spot-check 10 per PDF.
-- `run.py` calls the same retrieval function as `/api/chat` and records the trace; `report.py` computes the metrics with Wilson intervals and the leave-one-PDF-out tuning of `SIMILARITY_CUTOFF`, `RERANK_MIN_SCORE`, `TOP_N`.
+- Question YAML files (5 PDFs × 24 questions, standalone, about 20 unanswerable; gold headings picked from the parser's section tree); you spot-check 10 per PDF.
+- `run.py` calls the same retrieval function as `/api/chat` and records the trace; `report.py` computes the rates with Wilson intervals and the leave-one-PDF-out tuning of `SIMILARITY_CUTOFF`, `RERANK_MIN_SCORE`, `TOP_N`.
 - `eval/results.md` committed and linked from the README; set the tuned defaults in `env/config.py`.
 
 **Check:** `eval/results.md` has the headline table; the README says clearly that answers are not evaluated yet and that this is the next step.

@@ -25,10 +25,8 @@ class Question(EvalBase):
 
     id: Mapped[str] = mapped_column(primary_key=True)
     document: Mapped[str]  # the PDF the question belongs to
-    question: Mapped[str] = mapped_column(Text)
-    type: Mapped[str]
+    question: Mapped[str] = mapped_column(Text)  # standalone: the evaluation has no follow-ups
     answerable: Mapped[bool]
-    history: Mapped[list] = mapped_column(JSON, default=list)
 
 
 class Gold(EvalBase):
@@ -43,14 +41,14 @@ class Gold(EvalBase):
 
 
 class Result(EvalBase):
-    """The chunks of one question after one stage of one run."""
+    """The chunks of one question at one stage of one run."""
 
     __tablename__ = "results"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     run: Mapped[str]
     question_id: Mapped[str] = mapped_column(ForeignKey(f"{SCHEMA}.questions.id", ondelete="CASCADE"))
-    stage: Mapped[str]  # cosine | rerank | final
+    stage: Mapped[str]  # candidates (B2, with all scores, for the tuning) | final (B7, the scored context)
     chunks: Mapped[list] = mapped_column(JSON)  # id, document, heading_path, chars, cosine, rerank
     refused: Mapped[bool]
     latency_s: Mapped[float]

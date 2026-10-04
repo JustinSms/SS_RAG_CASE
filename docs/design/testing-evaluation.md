@@ -1,7 +1,7 @@
 # Document Chat: Testing and Evaluation
 
-Status: agreed, updated 2026-10-03. Builds on `retrieval-approach.md`, `tech-stack.md`, `app-structure.md`, `frontend-pages.md`.
-Principle: two separate layers. **Tests** prove the code does what it says (fast, no API key). **Evaluation** measures how good retrieval is, as the overlap between retrieved and gold sources (needs the key, produces numbers for the README). The generated answers are not evaluated yet; that is the next step (see `docs/decisions.md`).
+Status: agreed, updated 2026-10-04. Builds on `retrieval-approach.md`, `tech-stack.md`, `app-structure.md`, `frontend-pages.md`.
+Principle: two separate layers. **Tests** prove the code does what it says (fast, no API key). **Evaluation** measures how good retrieval is: whether a right source is in the context, and whether unanswerable questions are refused (needs the key, produces numbers for the README). The generated answers are not evaluated yet; that is the next step (see `docs/decisions.md`).
 
 ## 1. Tests (pytest, run on every commit)
 
@@ -24,55 +24,56 @@ Not planned: frontend unit tests and end-to-end browser tests (the smoke test co
 
 ## 2. Evaluation (`eval/`, run on demand)
 
-The details (hit rule, metrics, noise, cross-validation, schema) are in `evaluation-metrics.md`. Summary:
+The details (hit rule, question file, rates, noise, cross-validation, schema) are in `evaluation-metrics.md`. Summary:
 
 ### Setup
-- **5 public PDFs, 24 questions each, 120 in total** (2 already downloaded). Suggested: EU AI Act in English and German (backs the multilingual model choice), a technical standard, an annual report with tables (shows where PyMuPDF4LLM struggles), and a related regulation for cross-document questions. For the English/German pair, both language versions count as gold (see `evaluation-metrics.md` §1).
-- **Gold is a heading.** Claude reads each PDF and marks the document and the deepest heading containing the answer, chosen from the parser's section tree. A retrieved source `[document, page(s), heading(s)]` is a hit if at least one heading overlaps the gold heading (same section or a subsection). Pages are not used for matching.
+- **5 public PDFs, 24 questions each, 120 in total** (2 already downloaded). Suggested: EU AI Act in English and German (backs the multilingual model choice), a technical standard, an annual report with tables (shows where PyMuPDF4LLM struggles), and one more regulation. For the English/German pair, both language versions count as gold (see `evaluation-metrics.md` §1).
+- **Gold is a heading.** Claude reads each PDF and marks the document and the deepest heading containing the answer, as a full heading path copied from the parser's section tree (`eval/trees/`). Pages are not used for matching.
 - You spot-check 10 labels per PDF before the first run.
 
-### Question mix
-| Type | Share | Tests |
-|---|---|---|
-| Single fact, one passage | ~40% | Basic retrieval |
-| Spans several chunks of one section | ~25% | Section selection (B6) |
-| Needs two documents | ~10% | Search across all documents |
-| Follow-up ("and what about...") | ~10% | Question rewrite with Haiku |
-| Not in the documents | ~15-20% | "Not found" behaviour, no hallucination |
+### Questions
+Two kinds, all standalone (no conversation history), with no further types:
 
-### Metrics (headline = final context that would be given to the answer model)
-- **Source overlap only:** accuracy (answerable: sources overlap the gold; unanswerable: system says "not found"), precision, recall, context size in tokens. Refusal precision and recall are computed automatically for tuning `RERANK_MIN_SCORE`.
+| Kind | Share | Correct when |
+|---|---|---|
+| Answerable | ~80% (about 100) | At least one chunk of the final context is in a gold section or a subsection of it |
+| Unanswerable: plausible, on-topic, not in the documents | ~15-20% (about 20) | The system says "not found" |
+
+Not in the set, and so not measured: follow-up questions (the rewrite step B0) and questions that need two documents. See `docs/decisions.md`.
+
+### Metrics (on the final context that would be given to the answer model)
+- **Hit rate** on the answerable questions and **refusal rate** on the unanswerable ones, reported separately, overall and per PDF. Refusal precision (how many "not found" answers were right) next to them, plus context size in tokens and chunks per section.
+- **No precision, recall or per-stage table:** one right chunk makes a hit, which keeps the numbers easy to explain. Cost: the evaluation cannot show whether the context is complete, so it cannot show what section selection adds.
 - **No answer grading:** answers are not generated or judged in the evaluation. Evaluating them (by hand or with an LLM) is the next step of the project.
-- **Diagnostic table (optional, can be cut for time):** accuracy, precision and recall after cosine search, after reranking and after section selection, to show which step helps.
-- **Noise:** Wilson intervals on every score (about +/-7 points overall at n=120), and flip counts with a sign test when comparing two configurations.
-- **Tuning:** leave-one-PDF-out cross-validation for `SIMILARITY_CUTOFF`, `RERANK_MIN_SCORE` and `TOP_N`, instead of a fixed dev/test split.
+- **Noise:** Wilson intervals on every rate (about ±8 points for the answerable questions, about ±20 for the unanswerable ones), and flip counts with a sign test when comparing two configurations.
+- **Tuning:** leave-one-PDF-out cross-validation for `SIMILARITY_CUTOFF`, `RERANK_MIN_SCORE` and `TOP_N`, instead of a fixed dev/test split. The target is the number of correct questions (hits plus right refusals).
 
 ### Comparisons
 - **Cutoff sweep** as part of the tuning; closes the open "check the cutoff against bge-m3" item.
-- Not now (next steps): neighbours vs. LLM section selection, same questions, compare accuracy, recall, context size and cost. Dense vs. hybrid (dense + keyword/BM25) search, once keyword search is added.
+- Not now (next steps): neighbours vs. LLM section selection (needs a completeness measure, which the hit rate is not). Dense vs. hybrid (dense + keyword/BM25) search, once keyword search is added, compared on the hit rate.
 - Optional: with vs. without enrichment (context sentence in the embedding).
 
 ### How it runs
-A separate script in `eval/`, started on demand as a compose profile (`docker compose --profile eval run --rm eval python run.py`), with its own database `docchat_eval` so the app database stays empty. The eval script creates it from code on start (`CREATE DATABASE` if missing, then `create_all`); no Postgres init script. `/api/chat` and the eval call the same retrieval function, which returns a trace of chunk ids per stage. Flow: ingest, run, report (no manual grading). `eval/results.md` is committed and linked from the README.
+A separate script in `eval/`, started on demand as a compose profile (`docker compose --profile eval run --rm eval python run.py`), with its own database `docchat_eval` so the app database stays empty. The eval script creates it from code on start (`CREATE DATABASE` if missing, then `create_all`); no Postgres init script. `/api/chat` and the eval call the same retrieval function, which returns a trace of chunk ids and scores. Flow: ingest, write the questions, a scores-only run, tune, the final run, report (no manual grading; see `eval/README.md`). `eval/results.md` is committed and linked from the README.
 
 ## 3. How it fits the call
-- Don't run the evaluation live (it takes minutes and costs API calls for rewrite and selection). Show `eval/results.md` instead.
-- One table tells the retrieval story: accuracy, precision and recall on the final context, with the intervals, and the cutoff chosen from the tuning. Say clearly that the answers themselves are not evaluated yet.
+- Don't run the evaluation live (it takes minutes and costs API calls for selection). Show `eval/results.md` instead.
+- One table tells the retrieval story: hit rate and refusal rate on the final context, with the intervals, and the thresholds chosen from the tuning. Say clearly that the answers themselves, follow-ups and two-document questions are not evaluated yet.
 - Pick 2–3 questions from the set for the live demo, including one unanswerable one, so the demo matches the numbers.
-- Expect questions such as "how did you pick 0.45?" and "how do you know reranking helps?": the evaluation is the answer.
+- Expect questions such as "how did you pick 0.45?": the tuning table is the answer. "How do you know reranking helps?" can be answered by a run with a different setting and `report.py compare`; the per-stage table was cut.
 
 ## 4. Build order
 Tests grow with build steps 2–4 in `app-structure.md`. The retrieval trace goes in with the retrieval pipeline (step 4). The questions can be written any time before that and also guide the choice of test documents. `run.py` and `report.py` come after the happy path works (step 7). Next project step after that: evaluate the answers (by hand or with an LLM judge).
 
 ## Decided
 - 5 public PDFs, 120 questions, gold headings marked by Claude from the parser's section tree.
-- Overlap = at least one retrieved chunk in a gold section. Headline numbers (accuracy, precision, recall) on the final context.
+- Hit = at least one retrieved chunk in a gold section. Hit rate (answerable) and refusal rate (unanswerable) on the final context, reported separately. No precision, recall, question types or per-stage table (2026-10-04).
 - **No grading of answers in this evaluation.** Source overlap is the quick win; evaluating the answers is the next step (recorded in `docs/decisions.md`).
-- Diagnostic table kept for now; it can be cut if presentation time is short.
+- Follow-up and two-document questions left out (2026-10-04).
 - Cross-validation (leave-one-PDF-out) for tuning. Separate `eval/` script with its own database.
 
 ## Former open questions (all settled)
 1. Answer correctness: not evaluated now; by hand or with an LLM judge is decided in the next step.
 2. Neighbours vs. selection comparison: decided, out of scope, listed under next steps.
-3. Diagnostic table: kept for now, can be cut.
+3. Diagnostic table: cut (2026-10-04).
 4. Final choice of the 5 PDFs: Justin picks them once the app runs, so they can be chosen against real results.

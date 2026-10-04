@@ -131,11 +131,10 @@ def eval_session(session_factory, tmp_path, monkeypatch):
     questions = tmp_path / "questions"
     questions.mkdir()
     (questions / "notes.yaml").write_text(yaml.safe_dump([
-        {"id": "n-01", "document": "notes.pdf", "question": "How long is the notice period?", "type": "single_fact",
+        {"id": "n-01", "document": "notes.pdf", "question": "How long is the notice period?",
          "answerable": True, "gold": [{"document": "notes.pdf", "heading": heading}]},
-        {"id": "n-02", "document": "notes.pdf", "question": "And for the landlord?", "type": "follow_up",
-         "answerable": True, "gold": [{"document": "notes.pdf", "heading": heading}],
-         "history": [{"role": "user", "content": "How long is the notice period?"}]},
+        {"id": "n-02", "document": "notes.pdf", "question": "What is the notice period for the landlord?",
+         "answerable": True, "gold": [{"document": "notes.pdf", "heading": heading}]},
     ]))
     monkeypatch.setattr(run, "QUESTIONS_DIR", questions)
 

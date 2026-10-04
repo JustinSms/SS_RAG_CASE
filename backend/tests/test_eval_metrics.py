@@ -13,7 +13,7 @@ def chunk(n, path, cosine=0.8, rerank=0.9, document=DOC, chars=400):
 
 def record(gold_paths, candidates=(), final=(), answerable=True, refused=False, document=DOC, qid="q"):
     return Record(
-        qid, document, "single_fact", answerable, [Gold(DOC, p) for p in gold_paths],
+        qid, document, answerable, [Gold(DOC, p) for p in gold_paths],
         list(candidates), list(final), refused, 1.0,
     )
 
@@ -35,21 +35,18 @@ def test_a_parent_section_a_sibling_or_another_document_does_not_overlap():
     assert not metrics.overlaps(chunk(4, "3 Rules > 3.2 Limits", document="other.pdf"), gold)
 
 
-def test_answerable_scores_precision_recall_and_hit():
+def test_one_chunk_in_one_gold_section_is_a_hit():
     r = record(["A", "B"])
-    s = metrics.score(r, [chunk(1, "A"), chunk(2, "A > A.1"), chunk(3, "C"), chunk(4, "C")], refused=False)
+    s = metrics.score(r, [chunk(1, "C"), chunk(2, "A > A.1"), chunk(3, "C")], refused=False)
 
-    assert s.correct
-    assert s.precision == 0.5  # 2 of 4 chunks are in a gold section
-    assert s.recall == 0.5  # gold A is covered, gold B is not
-    assert s.tokens == 4 * 400 / settings.CHARS_PER_TOKEN
+    assert s.correct  # 1 of 3 chunks in gold A is enough; gold B is not needed
+    assert s.tokens == 3 * 400 / settings.CHARS_PER_TOKEN
 
 
-def test_answerable_with_no_overlap_or_a_refusal_is_wrong():
+def test_answerable_with_no_overlap_or_a_refusal_is_a_miss():
     r = record(["A"])
     assert not metrics.score(r, [chunk(1, "B")], refused=False).correct
-    refused = metrics.score(r, [], refused=True)
-    assert not refused.correct and refused.precision == 0 and refused.recall == 0
+    assert not metrics.score(r, [], refused=True).correct
 
 
 def test_unanswerable_is_correct_only_when_the_system_refuses():
@@ -58,7 +55,7 @@ def test_unanswerable_is_correct_only_when_the_system_refuses():
     assert not metrics.score(r, [chunk(1, "A")], refused=False).correct
 
 
-def test_stage_one_keeps_what_is_above_the_cutoff():
+def test_the_cutoff_keeps_what_is_above_it():
     r = record(["A"], [chunk(1, "A", cosine=0.9), chunk(2, "B", cosine=0.3)])
     chunks, refused = metrics.context_after_cosine(r, T)
     assert [c.id for c in chunks] == ["c1"] and not refused
@@ -67,7 +64,7 @@ def test_stage_one_keeps_what_is_above_the_cutoff():
     assert refused
 
 
-def test_stage_two_reranks_cuts_to_top_n_and_refuses_on_a_low_score():
+def test_the_rerank_stage_cuts_to_top_n_and_refuses_on_a_low_score():
     candidates = [chunk(1, "B", 0.9, 0.2), chunk(2, "A", 0.8, 0.95), chunk(3, "C", 0.7, 0.5), chunk(4, "D", 0.6, 0.4)]
     r = record(["A"], candidates)
 
@@ -78,7 +75,7 @@ def test_stage_two_reranks_cuts_to_top_n_and_refuses_on_a_low_score():
     assert chunks == [] and refused
 
 
-def test_stage_two_without_rerank_scores_keeps_the_cosine_order():
+def test_the_rerank_stage_without_rerank_scores_keeps_the_cosine_order():
     r = record(["A"], [chunk(1, "A", 0.9, None), chunk(2, "B", 0.8, None), chunk(3, "C", 0.7, None)])
     chunks, refused = metrics.context_after_rerank(r, T)
     assert [c.id for c in chunks] == ["c1", "c2"] and not refused
@@ -89,7 +86,7 @@ def test_the_final_stage_is_taken_as_it_was_run():
     assert metrics.context_for(r, "final", Thresholds(0.99, 0.99, 1)) == (r.final, False)
 
 
-def test_summary_counts_refusals():
+def test_summary_reports_answerable_and_unanswerable_separately():
     scores = [
         metrics.score(record(["A"]), [chunk(1, "A")], False),  # hit
         metrics.score(record(["A"]), [], True),  # wrongly refused
@@ -98,10 +95,9 @@ def test_summary_counts_refusals():
     ]
     s = metrics.summarize(scores)
 
-    assert (s.n, s.correct, s.answerable_n) == (4, 2, 2)
-    assert s.precision == 0.5 and s.recall == 0.5
+    assert s.hits == (1, 2)  # 2 answerable, 1 hit
+    assert s.refusals == (1, 2)  # 2 unanswerable, 1 refused
     assert s.refusal_precision == (1, 2)  # 2 refusals, 1 right
-    assert s.refusal_recall == (1, 2)  # 2 unanswerable, 1 refused
 
 
 def test_wilson_interval_matches_a_known_value():

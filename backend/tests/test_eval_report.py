@@ -13,9 +13,9 @@ def chunk(n, path, document="a.pdf", cosine=0.8, rerank=0.9):
     return Chunk(f"c{n}", document, path, 400, cosine, rerank)
 
 
-def record(qid, document="a.pdf", kind="single_fact", answerable=True, gold=("1 Scope",), final=(), refused=False):
+def record(qid, document="a.pdf", answerable=True, gold=("1 Scope",), final=(), refused=False):
     chunks = list(final)
-    return Record(qid, document, kind, answerable, [Gold(document, g) for g in gold], chunks, chunks, refused, 1.5)
+    return Record(qid, document, answerable, [Gold(document, g) for g in gold], chunks, chunks, refused, 1.5)
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def records():
     return [
         record("a-01", final=[chunk(1, "1 Scope")]),  # hit
         record("a-02", final=[chunk(2, "2 Other")]),  # miss
-        record("a-03", kind="unanswerable", answerable=False, gold=(), refused=True),  # right refusal
+        record("a-03", answerable=False, gold=(), refused=True),  # right refusal
         record("b-01", document="b.pdf", final=[chunk(3, "1 Scope", "b.pdf")]),  # hit
     ]
 
@@ -33,19 +33,20 @@ def folds():
     return {"a.pdf": T, "b.pdf": T}
 
 
-def test_the_report_has_the_headline_table_with_counts(records, folds):
+def test_the_report_separates_answerable_and_unanswerable_questions(records, folds):
     text = report.render(records, records, folds, {"a.pdf": 2.0}, [])
 
     assert "## Main table" in text
-    assert "| All | 3/4 (" in text  # counts next to the percentage
-    assert "| a.pdf | 2/3 (" in text
-    assert "| a.pdf |" in text and "2.0" in text  # chunks per section
+    assert "| All | 2/3 (" in text  # hits on the 3 answerable questions, counts next to the percentage
+    assert "| 1/1 (" in text  # 1 of 1 unanswerable refused
+    assert "| a.pdf | 1/2 (" in text
+    assert "2.0" in text  # chunks per section
 
 
 def test_the_report_lists_every_failure_with_gold_and_retrieved(records, folds):
     text = report.render(records, records, folds, {}, [])
 
-    assert "**a-02** (single_fact): wanted a.pdf > 1 Scope. Got: a.pdf > 2 Other" in text
+    assert "**a-02**: wanted a.pdf > 1 Scope. Got: a.pdf > 2 Other" in text
     assert "a-01" not in text.split("## Failures")[1].split("##")[0]
 
 
@@ -59,15 +60,14 @@ def test_the_report_warns_about_fallbacks(records, folds):
     assert "an optional step failed for 1 questions (a-02)" in text
 
 
-def test_the_report_shows_refusal_precision_and_recall(records, folds):
+def test_the_report_shows_refusal_precision(records, folds):
     text = report.render(records, records, folds, {}, [])
-    assert "Refusal precision 1/1" in text and "refusal recall 1/1" in text
+    assert "Refusal precision 1/1" in text
 
 
-def test_the_diagnostic_table_has_the_three_stages(records, folds):
+def test_the_report_has_no_precision_recall_or_stage_table(records, folds):
     text = report.render(records, records, folds, {}, [])
-    for stage in ("1. Cosine", "2. Rerank", "3. Final context"):
-        assert stage in text
+    assert "Recall" not in text and "| Precision" not in text and "1. Cosine" not in text
 
 
 def test_records_are_loaded_from_a_stored_run(eval_session):
@@ -78,7 +78,7 @@ def test_records_are_loaded_from_a_stored_run(eval_session):
     assert [r.question_id for r in records] == ["n-01", "n-02"]
     assert records[0].gold[0].document == "notes.pdf"
     assert records[0].candidates[0].cosine == 0.8 and records[0].final[0].document == "notes.pdf"
-    assert report.fallback_questions(eval_session, "t") == ["n-02"]
+    assert report.fallback_questions(eval_session, "t") == []
     assert report.chunks_per_section(eval_session)["notes.pdf"] >= 1
 
 

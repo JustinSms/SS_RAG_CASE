@@ -1,4 +1,6 @@
-"""Run the retrieval (B0-B7) for every question and store the trace. The answer model is never called.
+"""Run the retrieval (B1-B7) for every question and store the trace. The answer model is never called.
+
+The questions are standalone (no history), so the follow-up rewrite (B0) does not run.
 
     python run.py --label sweep --scores-only      # loosest settings, no selection call: scores for the tuning
     python run.py --label final --folds folds.json # each PDF's questions with the thresholds tuned on the other PDFs
@@ -12,6 +14,7 @@ import json
 import logging
 import time
 from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
 
 from sqlalchemy import delete, select
@@ -23,8 +26,10 @@ from app.retrieval import pipeline
 from app.retrieval.reranker import get_reranker
 from app.retrieval.search import Hit
 from env.config import settings
-from eval.db import Question, Result, ensure_database
+from eval import metrics
+from eval.db import Gold, Question, Result, ensure_database
 from eval.metrics import Thresholds
+from eval.progress import Progress
 from eval.questions import load_questions, sync_questions
 
 QUESTIONS_DIR = Path(__file__).parent / "questions"
@@ -32,7 +37,7 @@ RETRIEVAL_LOGGER = "app.retrieval"  # the optional steps log an error here when 
 
 
 class FallbackCounter(logging.Handler):
-    """Counts the errors the retrieval steps log when they fall back (rewrite, rerank, selection failed)."""
+    """Counts the errors the retrieval steps log when they fall back (rerank or selection failed)."""
 
     def __init__(self):
         super().__init__(level=logging.ERROR)
@@ -74,27 +79,44 @@ def describe(session: Session, ids: list, cosine: dict, rerank: dict) -> list[di
     ]
 
 
-def run_question(session: Session, question: Question, run: str, t: Thresholds, counter: FallbackCounter) -> None:
-    """Retrieve for one question and store the three stages."""
+@dataclass
+class Outcome:
+    """How one question went, for the progress line."""
+
+    correct: bool  # answerable: a hit; unanswerable: refused
+    refused: bool
+    latency_s: float
+    fallback: bool
+
+
+def verdict(question: Question, outcome: Outcome) -> str:
+    if question.answerable:
+        return "hit" if outcome.correct else "miss (refused)" if outcome.refused else "miss"
+    return "refused" if outcome.correct else "not refused"
+
+
+def run_question(session: Session, question: Question, run: str, t: Thresholds, counter: FallbackCounter) -> Outcome:
+    """Retrieve for one question and store the candidates (for the tuning) and the final context (the score)."""
     before = counter.count
     started = time.perf_counter()
     with thresholds_set(t):
-        context, trace = pipeline.select_context(session, question.question, question.history)
+        context, trace = pipeline.select_context(session, question.question, [])
     latency = time.perf_counter() - started
 
     cosine = dict(zip(trace.candidates, trace.cosine_scores))
     rerank = dict(zip(trace.reranked or [], trace.rerank_scores or []))
-    stages = {
-        "cosine": trace.candidates,
-        "rerank": trace.top_n if not trace.not_found else [],
-        "final": [h.chunk_id for h in context],
-    }
-    # A follow-up that came back unchanged was not rewritten: the rewrite fell back.
-    fallback = counter.count > before or (bool(question.history) and trace.search_question == question.question)
-    for stage, ids in stages.items():
-        session.add(Result(run=run, question_id=question.id, stage=stage, chunks=describe(session, ids, cosine, rerank),
+    stages = {"candidates": trace.candidates, "final": [h.chunk_id for h in context]}
+    fallback = counter.count > before
+    described = {stage: describe(session, ids, cosine, rerank) for stage, ids in stages.items()}
+    for stage, chunks in described.items():
+        session.add(Result(run=run, question_id=question.id, stage=stage, chunks=chunks,
                            refused=trace.not_found, latency_s=latency, fallback=fallback))
     session.commit()
+
+    gold = [metrics.Gold(g.document, g.heading) for g in session.scalars(select(Gold).where(Gold.question_id == question.id))]
+    final = [metrics.Chunk(c["id"], c["document"], c["heading_path"], c["chars"]) for c in described["final"]]
+    record = metrics.Record(question.id, question.document, question.answerable, gold, [], final, trace.not_found, latency)
+    return Outcome(metrics.score(record, final, trace.not_found).correct, trace.not_found, latency, fallback)
 
 
 def thresholds_for(question: Question, folds: dict | None, scores_only: bool) -> Thresholds:
@@ -107,6 +129,19 @@ def thresholds_for(question: Question, folds: dict | None, scores_only: bool) ->
     return Thresholds(**folds[question.document])
 
 
+def progress_line(number: int, questions: list[Question], question: Question, outcome: Outcome, progress: Progress,
+                  tally: dict) -> str:
+    """'[ 37/120] ai-act-07  hit             2.1s | elapsed 1:18 | left ~2:55 | hits 31/33 | refused 3/4'"""
+    width = len(str(len(questions)))
+    id_width = max(len(q.id) for q in questions)
+    line = (
+        f"[{number:>{width}}/{len(questions)}] {question.id:<{id_width}}  {verdict(question, outcome):<14} "
+        f"{outcome.latency_s:5.1f}s | {progress.status()} "
+        f"| hits {tally[True][0]}/{tally[True][1]} | refused {tally[False][0]}/{tally[False][1]}"
+    )
+    return line + (" | FALLBACK: an optional step failed" if outcome.fallback else "")
+
+
 def run_all(session: Session, label: str, folds: dict | None = None, scores_only: bool = False) -> list[str]:
     """Every question under one run label. Returns the ids of the questions that hit a fallback."""
     sync_questions(session, load_questions(QUESTIONS_DIR))
@@ -116,15 +151,25 @@ def run_all(session: Session, label: str, folds: dict | None = None, scores_only
     session.execute(delete(Result).where(Result.run == label))
     session.commit()
 
+    answerable = sum(q.answerable for q in questions)
+    mode = " at the loosest settings, without the selection call" if scores_only else ""
+    print(f"Run '{label}': {len(questions)} questions ({answerable} answerable, {len(questions) - answerable} unanswerable){mode}.",
+          flush=True)
+
     counter = FallbackCounter()
     logging.getLogger(RETRIEVAL_LOGGER).addHandler(counter)
     original = pipeline.select_extra_chunks
     if scores_only:
         pipeline.select_extra_chunks = lambda session, question, top: []
+    progress = Progress(len(questions))
+    tally = {True: [0, 0], False: [0, 0]}  # answerable -> [correct, run so far]
     try:
         for number, question in enumerate(questions, start=1):
-            print(f"[{number}/{len(questions)}] {question.id}", flush=True)
-            run_question(session, question, label, thresholds_for(question, folds, scores_only), counter)
+            outcome = run_question(session, question, label, thresholds_for(question, folds, scores_only), counter)
+            progress.advance()
+            tally[question.answerable][0] += outcome.correct
+            tally[question.answerable][1] += 1
+            print(progress_line(number, questions, question, outcome, progress, tally), flush=True)
     finally:
         pipeline.select_extra_chunks = original
         logging.getLogger(RETRIEVAL_LOGGER).removeHandler(counter)
@@ -143,7 +188,7 @@ def main() -> None:
 
     ensure_database()
     if check_api_key() != "ok":
-        raise SystemExit("ANTHROPIC_API_KEY is missing or invalid: the rewrite and selection steps need it.")
+        raise SystemExit("ANTHROPIC_API_KEY is missing or invalid: the selection step needs it.")
     get_reranker()  # unlike in the app, a reranker that cannot load stops the run: the numbers would be wrong
     with SessionLocal() as session:
         folds = json.loads(args.folds.read_text()) if args.folds else None

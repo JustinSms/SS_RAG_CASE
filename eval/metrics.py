@@ -1,4 +1,4 @@
-"""Retrieval metrics on recorded runs: overlap between retrieved and gold sections.
+"""Retrieval metrics on recorded runs: is at least one retrieved chunk in a gold section?
 
 Pure functions, no database and no models. See docs/design/evaluation-metrics.md.
 """
@@ -36,7 +36,6 @@ class Record:
 
     question_id: str
     document: str  # the PDF the question belongs to (the fold for the tuning)
-    type: str
     answerable: bool
     gold: list[Gold]
     candidates: list[Chunk]  # B2, best cosine first, with cosine and rerank scores
@@ -54,24 +53,18 @@ class Thresholds:
 
 @dataclass
 class Score:
-    correct: bool
+    correct: bool  # answerable: a hit; unanswerable: refused
     refused: bool
     answerable: bool
-    precision: float
-    recall: float
     tokens: float
 
 
 @dataclass
 class Summary:
-    n: int
-    correct: int
-    answerable_n: int
-    precision: float  # mean over answerable questions
-    recall: float
+    hits: tuple[int, int]  # (answerable questions with a hit, answerable questions)
+    refusals: tuple[int, int]  # (unanswerable questions refused, unanswerable questions)
+    refusal_precision: tuple[int, int]  # (right refusals, all refusals)
     tokens: float  # mean over all questions that were answered
-    refusal_precision: tuple[int, int]  # (correct refusals, all refusals)
-    refusal_recall: tuple[int, int]  # (correct refusals, unanswerable questions)
 
 
 def overlaps(chunk: Chunk, gold: Gold) -> bool:
@@ -100,38 +93,32 @@ def context_after_rerank(record: Record, t: Thresholds) -> tuple[list[Chunk], bo
 
 
 def context_for(record: Record, stage: str, t: Thresholds) -> tuple[list[Chunk], bool]:
-    """The chunks and the refusal at a stage. The final context cannot be recomputed (it needs the selection call)."""
-    if stage == "cosine":
-        return context_after_cosine(record, t)
+    """The chunks and the refusal at a stage: "rerank" is recomputed from the stored scores (the tuning),
+    "final" is taken as it was run (it cannot be recomputed: it needs the selection call)."""
     if stage == "rerank":
         return context_after_rerank(record, t)
     return record.final, record.refused
 
 
 def score(record: Record, chunks: list[Chunk], refused: bool) -> Score:
-    """Accuracy, precision and recall of one question."""
+    """Answerable: a hit if at least one chunk is in a gold section. Unanswerable: correct if refused."""
     tokens = sum(c.chars for c in chunks) / settings.CHARS_PER_TOKEN
     if not record.answerable:
-        return Score(refused, refused, False, 0.0, 0.0, tokens)
-    relevant = [c for c in chunks if any(overlaps(c, g) for g in record.gold)]
-    covered = [g for g in record.gold if any(overlaps(c, g) for c in chunks)]
-    precision = len(relevant) / len(chunks) if chunks else 0.0
-    return Score(bool(relevant), refused, True, precision, len(covered) / len(record.gold), tokens)
+        return Score(refused, refused, False, tokens)
+    hit = any(overlaps(c, g) for c in chunks for g in record.gold)
+    return Score(hit, refused, True, tokens)
 
 
 def summarize(scores: list[Score]) -> Summary:
     answerable = [s for s in scores if s.answerable]
+    unanswerable = [s for s in scores if not s.answerable]
     answered = [s for s in scores if not s.refused]
     refusals = [s for s in scores if s.refused]
     return Summary(
-        n=len(scores),
-        correct=sum(s.correct for s in scores),
-        answerable_n=len(answerable),
-        precision=mean(s.precision for s in answerable) if answerable else 0.0,
-        recall=mean(s.recall for s in answerable) if answerable else 0.0,
-        tokens=mean(s.tokens for s in answered) if answered else 0.0,
+        hits=(sum(s.correct for s in answerable), len(answerable)),
+        refusals=(sum(s.correct for s in unanswerable), len(unanswerable)),
         refusal_precision=(sum(not s.answerable for s in refusals), len(refusals)),
-        refusal_recall=(sum(not s.answerable for s in refusals), len(scores) - len(answerable)),
+        tokens=mean(s.tokens for s in answered) if answered else 0.0,
     )
 
 
@@ -180,8 +167,8 @@ def grid() -> list[Thresholds]:
     ]
 
 
-def accuracy_at(records: list[Record], stage: str, t: Thresholds) -> int:
-    """Number of correct questions at a stage under thresholds t."""
+def correct_at(records: list[Record], stage: str, t: Thresholds) -> int:
+    """Correct questions at a stage under thresholds t: hits plus right refusals (the tuning target)."""
     return sum(score(r, *context_for(r, stage, t)).correct for r in records)
 
 
@@ -192,8 +179,8 @@ def middle(values: list, allowed: list):
 
 
 def best_thresholds(records: list[Record]) -> Thresholds:
-    """The middle of the settings whose stage-2 accuracy is within EVAL_TUNE_TOLERANCE of the best."""
-    results = [(t, accuracy_at(records, "rerank", t)) for t in grid()]
+    """The middle of the settings whose correct count at the rerank stage is within EVAL_TUNE_TOLERANCE of the best."""
+    results = [(t, correct_at(records, "rerank", t)) for t in grid()]
     best = max(correct for _, correct in results)
     good = [t for t, correct in results if correct >= best - settings.EVAL_TUNE_TOLERANCE * len(records)]
     return Thresholds(

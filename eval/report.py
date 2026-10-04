@@ -23,7 +23,6 @@ from eval.metrics import Record, Thresholds
 EVAL_DIR = Path(__file__).parent
 FOLDS_FILE = EVAL_DIR / "folds.json"
 RESULTS_FILE = EVAL_DIR / "results.md"
-STAGES = {"cosine": "1. Cosine", "rerank": "2. Rerank", "final": "3. Final context (headline)"}
 SLOW_PERCENTILE = 0.95
 PERCENT = 100
 
@@ -47,7 +46,7 @@ def load_records(session: Session, run: str) -> list[Record]:
         return [RunChunk(c["id"], c["document"], c["heading_path"], c["chars"], c["cosine"], c["rerank"]) for c in row.chunks]
 
     return [
-        Record(q.id, q.document, q.type, q.answerable, gold[q.id], chunks(stages[q.id]["cosine"]),
+        Record(q.id, q.document, q.answerable, gold[q.id], chunks(stages[q.id]["candidates"]),
                chunks(stages[q.id]["final"]), stages[q.id]["final"].refused, stages[q.id]["final"].latency_s)
         for q in questions
     ]
@@ -81,8 +80,8 @@ def scored(records: list[Record], stage: str, folds: dict[str, Thresholds]) -> l
     return [metrics.score(r, *metrics.context_for(r, stage, folds[r.document])) for r in records]
 
 
-def percent(value: float) -> str:
-    return f"{value * PERCENT:.0f}%"
+def scored_at(records: list[Record], t: Thresholds) -> list[metrics.Score]:
+    return [metrics.score(r, *metrics.context_for(r, "rerank", t)) for r in records]
 
 
 def pair(ratio: tuple[int, int]) -> str:
@@ -91,27 +90,19 @@ def pair(ratio: tuple[int, int]) -> str:
 
 def main_row(label: str, records: list[Record], folds, per_section: float | None = None) -> list:
     s = metrics.summarize(scored(records, "final", folds))
-    return [label, metrics.format_rate(s.correct, s.n), percent(s.recall), percent(s.precision), f"{s.tokens:.0f}",
-            "-" if per_section is None else f"{per_section:.1f}"]
+    return [label, pair(s.hits), pair(s.refusals), f"{s.tokens:.0f}", "-" if per_section is None else f"{per_section:.1f}"]
 
 
 def main_table(records, folds, per_section) -> str:
     rows = [main_row("All", records, folds)]
     for document in sorted({r.document for r in records}):
         rows.append(main_row(document, [r for r in records if r.document == document], folds, per_section.get(document)))
-    return table(["PDF", "Accuracy", "Recall", "Precision", "Context tokens", "Chunks per section"], rows)
-
-
-def type_table(records, folds) -> str:
-    rows = []
-    for kind in sorted({r.type for r in records}):
-        s = metrics.summarize(scored([r for r in records if r.type == kind], "final", folds))
-        rows.append([kind, metrics.format_rate(s.correct, s.n)])
     overall = metrics.summarize(scored(records, "final", folds))
-    text = table(["Question type", "Accuracy"], rows)
-    return text + (
-        f"\n\nRefusal precision {pair(overall.refusal_precision)} (of all \"not found\" answers, how many were right); "
-        f"refusal recall {pair(overall.refusal_recall)} (of the unanswerable questions, how many were refused)."
+    return table(
+        ["PDF", "Hit rate (answerable)", "Refused (unanswerable)", "Context tokens", "Chunks per section"], rows
+    ) + (
+        f"\n\nRefusal precision {pair(overall.refusal_precision)}: of all \"not found\" answers, how many were "
+        "for an unanswerable question (the rest are answerable questions that were wrongly refused)."
     )
 
 
@@ -120,39 +111,27 @@ def tuning_section(sweep: list[Record], folds: dict[str, Thresholds]) -> str:
     cutoffs, min_scores = settings.EVAL_CUTOFF_GRID, settings.EVAL_RERANK_GRID
     grid = table(
         ["RERANK_MIN_SCORE \\ SIMILARITY_CUTOFF"] + [str(c) for c in cutoffs],
-        [[m] + [metrics.format_rate(metrics.accuracy_at(sweep, "rerank", Thresholds(c, m, pooled.top_n)), len(sweep))
+        [[m] + [metrics.format_rate(metrics.correct_at(sweep, "rerank", Thresholds(c, m, pooled.top_n)), len(sweep))
                 for c in cutoffs] for m in min_scores],
     )
     top_rows = []
     for n in settings.EVAL_TOP_N_GRID:
-        t = Thresholds(pooled.cutoff, pooled.min_score, n)
-        s = metrics.summarize(scored_at(sweep, t))
-        top_rows.append([n, metrics.format_rate(s.correct, s.n), percent(s.recall), percent(s.precision)])
+        s = metrics.summarize(scored_at(sweep, Thresholds(pooled.cutoff, pooled.min_score, n)))
+        top_rows.append([n, pair(s.hits), pair(s.refusals)])
     fold_rows = [[d, t.cutoff, t.min_score, t.top_n] for d, t in sorted(folds.items())]
     return "\n\n".join([
-        f"Accuracy after the rerank stage (no section selection), all {len(sweep)} questions. "
-        f"Settings that get within {settings.EVAL_TUNE_TOLERANCE * PERCENT:.0f}% of the questions of the best count as equally good; "
+        f"Tuned on the rerank stage (top N, no section selection), all {len(sweep)} questions. A setting scores the number of "
+        "correct questions: hits on the answerable ones plus refusals of the unanswerable ones. "
+        f"Settings within {settings.EVAL_TUNE_TOLERANCE * PERCENT:.0f}% of the questions of the best count as equally good; "
         "the pick is the middle of them, not the single best value.",
         f"Pooled pick over all questions (the default to put in `env/config.py`): "
         f"`SIMILARITY_CUTOFF` {pooled.cutoff}, `RERANK_MIN_SCORE` {pooled.min_score}, `TOP_N` {pooled.top_n}.",
-        f"**Cutoff and minimum rerank score** (`TOP_N` {pooled.top_n}):\n\n{grid}",
+        f"**Cutoff and minimum rerank score**, correct questions (`TOP_N` {pooled.top_n}):\n\n{grid}",
         f"**TOP_N** (cutoff {pooled.cutoff}, minimum score {pooled.min_score}):\n\n"
-        + table(["TOP_N", "Accuracy", "Recall", "Precision"], top_rows),
-        "**Leave-one-PDF-out picks** (tuned on the other PDFs; the headline table uses these for the held-out PDF):\n\n"
+        + table(["TOP_N", "Hit rate (answerable)", "Refused (unanswerable)"], top_rows),
+        "**Leave-one-PDF-out picks** (tuned on the other PDFs; the main table uses these for the held-out PDF):\n\n"
         + table(["Held-out PDF", "SIMILARITY_CUTOFF", "RERANK_MIN_SCORE", "TOP_N"], fold_rows),
     ])
-
-
-def scored_at(records: list[Record], t: Thresholds) -> list[metrics.Score]:
-    return [metrics.score(r, *metrics.context_for(r, "rerank", t)) for r in records]
-
-
-def diagnostic_table(records, folds) -> str:
-    rows = []
-    for stage, label in STAGES.items():
-        s = metrics.summarize(scored(records, stage, folds))
-        rows.append([label, metrics.format_rate(s.correct, s.n), percent(s.recall), percent(s.precision), f"{s.tokens:.0f}"])
-    return table(["Stage", "Accuracy", "Recall", "Precision", "Context tokens"], rows)
 
 
 def failures(records: list[Record], folds) -> str:
@@ -163,24 +142,31 @@ def failures(records: list[Record], folds) -> str:
             continue
         got = "refused (\"not found\")" if refused else "; ".join(f"{c.document} > {c.heading_path}" for c in chunks) or "nothing"
         wanted = "refusal" if not r.answerable else "; ".join(f"{g.document} > {g.heading}" for g in r.gold)
-        blocks.append(f"- **{r.question_id}** ({r.type}): wanted {wanted}. Got: {got}")
+        blocks.append(f"- **{r.question_id}**: wanted {wanted}. Got: {got}")
     return "\n".join(blocks) or "None."
 
 
 def latency_line(records: list[Record]) -> str:
     latencies = sorted(r.latency_s for r in records)
     p95 = latencies[min(len(latencies) - 1, int(SLOW_PERCENTILE * len(latencies)))]
-    return f"Retrieval latency per question (including the rewrite and selection calls): mean {sum(latencies) / len(latencies):.1f} s, p95 {p95:.1f} s."
+    return f"Retrieval latency per question (including the selection call): mean {sum(latencies) / len(latencies):.1f} s, p95 {p95:.1f} s."
 
 
-def trust_section(n: int) -> str:
-    low, high = metrics.wilson(n // 2, n)
+def trust_section(records: list[Record]) -> str:
+    answerable = sum(r.answerable for r in records)
+    unanswerable = len(records) - answerable
+    widths = []
+    for n in (answerable, unanswerable):
+        low, high = metrics.wilson(n // 2, n)
+        widths.append(f"±{(high - low) / 2 * PERCENT:.0f}")
     return (
-        f"The {n} questions are a sample, so every score is an estimate: at n={n} a score of 50% has an interval of about "
-        f"±{(high - low) / 2 * PERCENT:.0f} points, and the intervals above (Wilson, 95%) are wider still for one PDF or one question type. "
-        "Questions from the same PDF resemble each other, so read the per-PDF and per-type rows as indications of where retrieval fails. "
+        f"The questions are a sample, so every rate is an estimate: at 50% the interval is about {widths[0]} points for the "
+        f"{answerable} answerable questions and {widths[1]} points for the {unanswerable} unanswerable ones, and wider still "
+        "for one PDF. Questions from the same PDF resemble each other, so read the per-PDF rows as indications of where "
+        "retrieval fails. A hit means one right chunk was in the context, not that the context was complete. "
+        "Not measured: follow-up questions (the rewrite step) and questions that need two documents. "
         "**The generated answers are not evaluated yet** (correctness, completeness, faithfulness, citation validity); "
-        "good source overlap is necessary for a good answer but not sufficient. Evaluating the answers is the next step."
+        "finding the right source is necessary for a good answer but not sufficient. Evaluating the answers is the next step."
     )
 
 
@@ -188,21 +174,19 @@ def render(final: list[Record], sweep: list[Record], folds: dict[str, Thresholds
            fallbacks: list[str]) -> str:
     parts = [
         "# Retrieval evaluation",
-        f"{len(final)} questions on {len({r.document for r in final})} PDFs. Source overlap only: a retrieved chunk is a hit if it is in the gold "
-        "section or one of its subsections. Thresholds are cross-validated leave-one-PDF-out. Details: `docs/design/evaluation-metrics.md`.",
+        f"{len(final)} questions on {len({r.document for r in final})} PDFs, all standalone. An answerable question is a hit if at "
+        "least one chunk of the final context is in a gold section or one of its subsections; an unanswerable question is "
+        "correct if the system answers \"not found\". Thresholds are cross-validated leave-one-PDF-out. "
+        "Details: `docs/design/evaluation-metrics.md`.",
         "## Main table: final context (the chunks the answer model would get)",
         main_table(final, folds, per_section),
         latency_line(final),
-        "## By question type",
-        type_table(final, folds),
         "## Tuning",
         tuning_section(sweep, folds),
-        "## Which step helps (diagnostic)",
-        diagnostic_table(final, folds),
         "## Failures",
         failures(final, folds),
         "## How much to trust the numbers",
-        trust_section(len(final)),
+        trust_section(final),
     ]
     if fallbacks:
         parts.insert(2, f"**Warning:** an optional step failed for {len(fallbacks)} questions ({', '.join(fallbacks)}); their rows do not show the real pipeline.")
