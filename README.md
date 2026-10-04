@@ -57,7 +57,7 @@ Browser → web (React + nginx) → api (FastAPI + 2 local models) → db (Postg
 
 1. The PDF is checked and converted to text with its headings and page numbers.
 2. The headings become a **section tree** (chapter → sub-chapter).
-3. Each section is cut into **chunks** of at most about two pages. A chunk never crosses a section boundary.
+3. Each section is cut into **chunks** (the text is split on headings) of at most about two pages. A chunk never crosses a section boundary.
 4. Claude Haiku writes, for every chunk, a short **context sentence** (where it sits in the document), a **summary** and **keywords**.
 5. Each chunk is turned into a vector (embedding) with a local model and stored.
 
@@ -150,7 +150,7 @@ Smaller issues fixed along the way are in [docs/decisions.md](docs/decisions.md)
 - **Scanned PDFs (OCR).** A PDF without a text layer is marked as failed with "no text found".
 - **Tables and images.** Tables are read as plain text; images and charts are ignored.
 - **Keyword search.** Search uses vectors only, so exact codes or numbers can be missed.
-- **Multilingual questions.** A question must be in the language of the documents.
+- **Multilingual questions.** Currently, a question must be in the language of the documents. Translation is needed. 
 - **Multiple users.** No accounts, no server-side chat history, one upload processed at a time.
 - **File types other than PDF.**
 
