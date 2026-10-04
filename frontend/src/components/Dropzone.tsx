@@ -3,7 +3,8 @@ import { CloudUpload } from "lucide-react"
 import { checkFile, MAX_UPLOAD_MB } from "@/lib/upload"
 import { cn } from "@/lib/utils"
 
-type Props = { onUpload: (files: File[]) => Promise<void> }
+// onUpload returns a message for every file the api refused.
+type Props = { onUpload: (files: File[]) => Promise<string[]> }
 
 // Click or drag PDFs in. Files the backend would refuse are rejected here first.
 export function Dropzone({ onUpload }: Props) {
@@ -17,11 +18,7 @@ export function Dropzone({ onUpload }: Props) {
     const accepted = files.filter((_, i) => problems[i] === null)
     const rejected = problems.filter((p): p is string => p !== null)
     if (accepted.length > 0) {
-      try {
-        await onUpload(accepted)
-      } catch (e) {
-        rejected.push((e as Error).message)
-      }
+      rejected.push(...(await onUpload(accepted)))
     }
     setMessages(rejected)
     // Lets the same file be picked again after it was rejected or deleted.

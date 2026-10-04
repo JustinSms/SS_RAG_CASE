@@ -7,8 +7,6 @@ from dataclasses import dataclass
 CITATION = re.compile(r"\[\s*(c\d+(?:\s*,\s*c\d+)*)\s*\]")
 # Same, with the space before it, so removing a bracket leaves no double space.
 LEADING_SPACE_CITATION = re.compile(r"( ?)" + CITATION.pattern)
-# A sentence ends at a full stop (unless a citation follows it) or after a closing bracket.
-SENTENCE_END = re.compile(r"(?<=[.!?])\s+(?!\[c)|(?<=\])\s+")
 
 
 @dataclass
@@ -38,6 +36,15 @@ def strip_citations(text: str) -> str:
 
 
 def uncited_statements(answer: str) -> list[str]:
-    """Sentences without a citation, so a prompt that stops citing is easy to detect."""
-    sentences = [s.strip() for s in SENTENCE_END.split(answer) if s.strip()]
-    return [s for s in sentences if not CITATION.search(s)]
+    """Text with no citation after it, so a prompt that stops citing is easy to detect.
+
+    The answer prompt cites at the end of a sentence or short paragraph, once for several
+    sentences from the same chunks. So within each line (a paragraph or list item), the text after
+    the last citation is uncited. A line ending in ":" introduces a list and needs no citation.
+    """
+    uncited = []
+    for line in answer.splitlines():
+        rest = CITATION.split(line)[-1].strip()
+        if rest and not rest.endswith(":"):
+            uncited.append(rest)
+    return uncited

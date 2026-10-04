@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { deleteDocument, DuplicateError, uploadDocuments, type Document } from "@/api/client"
+import { deleteDocument, DuplicateError, uploadDocument, type Document } from "@/api/client"
 import { DocumentList } from "@/components/DocumentList"
 import { DuplicateDialog } from "@/components/DuplicateDialog"
 import { Dropzone } from "@/components/Dropzone"
@@ -14,27 +14,36 @@ export function UploadPage() {
   const [duplicates, setDuplicates] = useState<File[]>([])
   const [overwriteError, setOverwriteError] = useState<string | null>(null)
 
-  async function upload(files: File[]) {
-    try {
-      await uploadDocuments(files)
-    } catch (e) {
-      if (!(e instanceof DuplicateError)) throw e
-      setDuplicates(files)
-    } finally {
-      // Refresh even when the request fails, so the list always matches the server.
-      await refresh()
+  // Uploads the files one by one. Duplicates wait for the dialog; other refusals come back as messages.
+  async function upload(files: File[]): Promise<string[]> {
+    const found: File[] = []
+    const messages: string[] = []
+    for (const file of files) {
+      try {
+        await uploadDocument(file)
+      } catch (e) {
+        if (e instanceof DuplicateError) found.push(file)
+        else messages.push((e as Error).message)
+      }
     }
+    setDuplicates(found)
+    // Refresh even when a request fails, so the list always matches the server.
+    await refresh()
+    return messages
   }
 
   async function overwrite() {
     const files = duplicates
     setDuplicates([])
-    try {
-      await uploadDocuments(files, true)
-      setOverwriteError(null)
-    } catch (e) {
-      setOverwriteError((e as Error).message)
+    const messages: string[] = []
+    for (const file of files) {
+      try {
+        await uploadDocument(file, true)
+      } catch (e) {
+        messages.push((e as Error).message)
+      }
     }
+    setOverwriteError(messages.length > 0 ? messages.join(" ") : null)
     await refresh()
   }
 

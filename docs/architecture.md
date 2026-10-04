@@ -56,7 +56,7 @@ Code: `backend/app/retrieval/`. `select_context` runs steps 0-7 and returns the 
 | 5 Group | The sections the kept chunks belong to | |
 | 6 Select | One Sonnet call sees the chunk summaries of those sections and picks up to `MAX_SELECTED` extra chunks | Only the top N are used |
 | 7 Combine | Top N plus selected chunks, each once, in document order, labelled `c1`, `c2`, ... with heading path and pages | |
-| 8 Answer | Sonnet answers from that context only and ends each statement with the labels it used | This is the only required call; a failure before the stream starts is a `502` |
+| 8 Answer | Sonnet answers from that context only and puts the labels it used at the end of the sentence or short paragraph they support | This is the only required call; a failure arrives as an `error` event in the stream |
 
 `/api/chat` answers with Server-Sent Events: a `sources` event (label → document, pages, headings), then `text` pieces, then `done` (or `error`). The browser replaces each `[c3]` with a source tag that opens the PDF at the cited page, and draws nothing for labels that are not in `sources`.
 

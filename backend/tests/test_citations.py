@@ -31,7 +31,16 @@ def test_strip_citations_removes_every_bracket():
     assert strip_citations("A. [c1] B. [c1, c2]") == "A. B."
 
 
-def test_a_statement_without_an_id_is_detected():
-    answer = "Thirty days. [c1] Also ten days. Fine print applies! [c2]"
-    assert uncited_statements(answer) == ["Also ten days."]
-    assert uncited_statements("Thirty days. [c1]") == []
+def test_sentences_can_share_one_citation_at_the_end():
+    assert uncited_statements("Thirty days. Also ten days. Fine print applies! [c2]") == []
+    assert uncited_statements("Thirty days. [c1] Ten days in writing. [c1, c2]") == []
+
+
+def test_text_after_the_last_citation_of_a_paragraph_is_detected():
+    answer = "Thirty days. [c1] Also ten days.\n\nFine print applies. [c2] Nothing else."
+    assert uncited_statements(answer) == ["Also ten days.", "Nothing else."]
+
+
+def test_a_list_intro_needs_no_citation_but_each_item_does():
+    answer = "The fees are:\n- Ten euros. [c1]\n- Twenty euros."
+    assert uncited_statements(answer) == ["- Twenty euros."]

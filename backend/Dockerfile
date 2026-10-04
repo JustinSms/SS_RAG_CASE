@@ -20,8 +20,8 @@ COPY backend/download_models.py ./
 RUN python download_models.py
 ENV HF_HUB_OFFLINE=1
 
+# Tests are not part of the image; they run on the host (`cd backend && uv run pytest`).
 COPY backend/app ./app
-COPY backend/tests ./tests
 
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

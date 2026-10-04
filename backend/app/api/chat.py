@@ -5,7 +5,7 @@ from dataclasses import asdict
 from typing import Literal
 
 import anthropic
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -53,11 +53,9 @@ def events(sources: dict[str, Source], text: Iterator[str]) -> Iterator[str]:
 @router.post("")
 def chat(request: ChatRequest, session: Session = Depends(get_session)):
     history = [m.model_dump() for m in request.history]
-    try:
-        # The retrieval runs before the stream starts, so the session is not needed while streaming.
-        sources, text = stream_answer(session, request.question.strip(), history)
-    except anthropic.APIError as error:
-        raise HTTPException(502, f"The answer model could not be reached: {error.message}")
+    # The retrieval runs before the stream starts, so the session is not needed while streaming.
+    # The answer call only starts inside the stream, so its failures arrive as an `error` event.
+    sources, text = stream_answer(session, request.question.strip(), history)
     return StreamingResponse(
         events(sources, text),
         media_type="text/event-stream",

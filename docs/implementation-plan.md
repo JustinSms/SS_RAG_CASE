@@ -75,7 +75,7 @@ From milestone 6 on, also run the clean-clone smoke test before merging: `script
 - `cp env/.env.template env/.env`, add your key, `docker compose up --build`; `docker compose ps` shows both containers healthy.
 - `curl localhost:8000/api/health` (or the port you expose for now) shows healthy.
 - Remove the key, restart `api`: health reports the missing key.
-- `docker compose run --rm api pytest` passes.
+- `cd backend && uv run pytest` passes (tests run on the host, not in the api image).
 
 ---
 

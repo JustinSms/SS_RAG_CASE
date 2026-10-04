@@ -72,7 +72,17 @@ test("rejects a .docx and a file over 10 MB in the browser without calling the a
   expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(false)
 })
 
-test("uploads valid files in one request and refreshes the list", async () => {
+const duplicate = reply(409, { detail: "x.pdf is already uploaded.", document: null })
+
+function posts(fetchMock: ReturnType<typeof stubApi>) {
+  return fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")
+}
+
+function postedNames(post: unknown[]) {
+  return ((post[1] as RequestInit).body as FormData).getAll("files").map((f) => (f as File).name)
+}
+
+test("uploads each valid file in its own request and refreshes the list", async () => {
   let documents: Document[] = []
   const fetchMock = stubApi({ list: () => documents })
   render(<UploadPage />)
@@ -80,15 +90,26 @@ test("uploads valid files in one request and refreshes the list", async () => {
   documents = [doc({ filename: "x.pdf" }), doc({ id: "2", filename: "y.pdf" })]
   pick(pdf("x.pdf"), pdf("y.pdf"))
   expect(await screen.findByText("y.pdf")).toBeInTheDocument()
-  const post = fetchMock.mock.calls.find(([, init]) => init?.method === "POST")!
-  expect((post[1]!.body as FormData).getAll("files")).toHaveLength(2)
+  expect(posts(fetchMock).map(postedNames)).toEqual([["x.pdf"], ["y.pdf"]])
 })
 
-const duplicate = reply(409, { detail: "x.pdf is already uploaded.", document: null })
+test("only the duplicate goes to the dialog; Overwrite resends just that file", async () => {
+  const fetchMock = stubApi({ list: () => [] })
+  fetchMock.mockImplementation(async (url, init) => {
+    if (init?.method !== "POST") return reply(200, []) as never
+    const name = postedNames([url, init])[0]
+    return (name === "x.pdf" && url.endsWith("overwrite=false") ? duplicate : reply(202, { ids: ["1"] })) as never
+  })
+  render(<UploadPage />)
+  await screen.findByText("No documents yet.")
+  pick(pdf("x.pdf"), pdf("y.pdf"))
+  expect(await screen.findByText("This document is already uploaded. Overwrite it?")).toBeInTheDocument()
 
-function posts(fetchMock: ReturnType<typeof stubApi>) {
-  return fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")
-}
+  fireEvent.click(screen.getByRole("button", { name: "Overwrite" }))
+  await waitFor(() => expect(posts(fetchMock)).toHaveLength(3))
+  expect(posts(fetchMock)[2][0]).toBe("/api/documents?overwrite=true")
+  expect(postedNames(posts(fetchMock)[2])).toEqual(["x.pdf"])
+})
 
 test("a duplicate (409) opens the dialog and Overwrite resends with overwrite=true", async () => {
   let post: unknown = duplicate
